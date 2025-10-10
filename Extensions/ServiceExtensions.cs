@@ -19,7 +19,8 @@ public static class ServiceExtensions
         
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IUserService, UserService>();
-        
+        services.AddScoped<IAmenityService, AmenityService>();
+        services.AddScoped<IFloorService, FloorService>();
     }
     
 }

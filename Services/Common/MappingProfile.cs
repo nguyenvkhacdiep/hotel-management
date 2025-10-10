@@ -9,5 +9,8 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<User, UserResponseModel>();
+        CreateMap<Role, RoleModel>();
+        CreateMap<Amenity, AmenityResponseModel>();
+        CreateMap<Floor, FloorResponseModel>();
     }
 }
