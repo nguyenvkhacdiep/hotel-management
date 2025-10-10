@@ -14,7 +14,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.ServiceConfiguration(builder.Configuration);
-
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
@@ -38,11 +39,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapStaticAssets();
 
 app.MapControllerRoute(
