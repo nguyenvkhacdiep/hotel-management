@@ -92,5 +92,11 @@ public class AppDbContext: DbContext
         
         modelBuilder.Entity<Amenity>().Property(e => e.Category)
             .HasConversion<string>();
+        
+        modelBuilder.Entity<RoomPrice>().Property(e => e.DayType)
+            .HasConversion<string>();
+        
+        modelBuilder.Entity<RoomPrice>().Property(e => e.SeasonName)
+            .HasConversion<string>();
     }
 }

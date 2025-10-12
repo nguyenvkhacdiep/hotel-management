@@ -21,6 +21,9 @@ public static class ServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAmenityService, AmenityService>();
         services.AddScoped<IFloorService, FloorService>();
+        services.AddScoped<IRoomTypeService, RoomTypeService>();
+        services.AddScoped<IRoomService, RoomService>();
+        services.AddScoped<IRoomPricesService, RoomPricesService>();
     }
     
 }
