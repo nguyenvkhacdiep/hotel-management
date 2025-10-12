@@ -4,6 +4,7 @@ using HotelManagement.Data;
 using HotelManagement.Extensions;
 using HotelManagement.Helpers;
 using HotelManagement.Models;
+using HotelManagement.Models.Common;
 using HotelManagement.Services.Common;
 using HotelManagement.Services.Dto;
 using HotelManagement.Services.Interfaces;
@@ -43,6 +44,7 @@ public class FloorService: IFloorService
         {
             Id = Guid.NewGuid(),
             FloorName = addFloorDto.FloorName,
+            FloorNumber = addFloorDto.FloorNumber,
             Description = addFloorDto.Description,
             TotalRooms = addFloorDto.TotalRooms,
         };
@@ -66,11 +68,11 @@ public class FloorService: IFloorService
         else
             query = query.ApplySort(parameters.OrderBy);
 
-        var users = await query.Skip((parameters.PageNumber - 1) * parameters.PageSize)
+        var floors = await query.Skip((parameters.PageNumber - 1) * parameters.PageSize)
             .Take(parameters.PageSize)
             .ToListAsync();
 
-        var floorResponse = _mapper.Map<List<FloorResponseModel>>(users);
+        var floorResponse = _mapper.Map<List<FloorResponseModel>>(floors);
 
         return new PageList<FloorResponseModel>(floorResponse, query.Count(),
             parameters.PageNumber,
@@ -157,4 +159,5 @@ public class FloorService: IFloorService
         
         return "Floor has been toggled successfully.";
     }
+    
 }

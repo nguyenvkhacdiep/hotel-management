@@ -26,7 +26,6 @@ public class Room
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-    
     public RoomType RoomType { get; set; } = null!;
     public Floor Floor { get; set; } = null!;
     public ICollection<RoomAmenity> RoomAmenities { get; set; } = new List<RoomAmenity>();

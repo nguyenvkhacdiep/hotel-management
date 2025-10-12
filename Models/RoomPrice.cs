@@ -3,7 +3,7 @@ using HotelManagement.Models.Common;
 namespace HotelManagement.Models;
 
 public class RoomPrice
-{
+{ 
     public Guid Id { get; set; }
     public Guid RoomId { get; set; }
     public SeasonType SeasonName { get; set; }
@@ -14,6 +14,5 @@ public class RoomPrice
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-    
     public Room Room { get; set; } = null!;
 }

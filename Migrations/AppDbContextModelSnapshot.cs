@@ -142,6 +142,10 @@ namespace HotelManagement.Migrations
                     b.Property<string>("FloorName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FloorNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -320,8 +324,9 @@ namespace HotelManagement.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DayType")
-                        .HasColumnType("int");
+                    b.Property<string>("DayType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -335,8 +340,9 @@ namespace HotelManagement.Migrations
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("SeasonName")
-                        .HasColumnType("int");
+                    b.Property<string>("SeasonName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
