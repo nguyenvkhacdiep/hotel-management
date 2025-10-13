@@ -36,3 +36,16 @@ public class EditUserDto
     public Guid RoleId { get; set; }
     public bool IsActive { get; set; }
 }
+
+public class UserLoginDto
+{
+    public string Username { get; set; } = null!;
+    public string Password { get; set; } = null!;
+}
+
+public class UserLoginResponseModel
+{
+    public UserResponseModel User { get; set; } = null!;
+    public string Token { get; set; } = null!;
+    public long TokenExpiresIn { get; set; }
+}

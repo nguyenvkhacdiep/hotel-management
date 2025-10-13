@@ -55,4 +55,13 @@ public class UserController : ControllerBase
         var message = await _userService.InactiveUserAsync(id);
         return Ok(new { message });
     }
+    
+    [HttpDelete("delete-user/{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var message = await _userService.DeleteUserAsync(id);
+        return Ok(new { message });
+    }
 }

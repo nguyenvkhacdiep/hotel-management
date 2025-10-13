@@ -1,0 +1,603 @@
+@model HotelManagement.Services.Dto.AddUserDto
+
+@{
+    ViewData["Title"] = "Add New User";
+}
+
+@{
+    var roles = ViewBag.Roles;
+}
+
+<style>
+    .form-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border: none;
+    }
+    
+    .card-header-custom h3 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .card-header-custom .icon-circle {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    
+    .card-body-custom {
+        padding: 40px;
+        background: #ffffff;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .input-group {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group:focus-within {
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .input-group-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 16px;
+    }
+    
+    .form-control, .form-select {
+        border: none;
+        padding: 12px 16px;
+        font-size: 15px;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: #ffffff;
+        box-shadow: none;
+        border: none;
+    }
+
+    .form-select.is-invalid,select.is-invalid{
+        border-color: #dc3545 !important;
+        padding-right: calc(1.5em + 0.75rem);
+        background: #ffebee;
+    }
+
+    .form-select.is-invalid option,
+    select.is-invalid option {
+        background-color: white !important;
+        color: #212529 !important;
+        border: none !important;
+    }
+    
+    .form-control.is-valid {
+        background: #e8f5e9;
+        border: none;
+    }
+    
+    .form-control.is-invalid {
+        background: #ffebee;
+        border: none;
+    }
+    
+    .btn-toggle-password {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-toggle-password:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        color: white;
+    }
+    
+    .form-text {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .password-strength {
+        margin-top: 10px;
+        height: 4px;
+        border-radius: 2px;
+        background: #e2e8f0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+    
+    .strength-weak { background: #ef4444; width: 33%; }
+    .strength-medium { background: #f59e0b; width: 66%; }
+    .strength-strong { background: #10b981; width: 100%; }
+    
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 14px 32px;
+        font-weight: 600;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    
+    .btn-secondary-custom {
+        background: #e2e8f0;
+        color: #2d3748;
+        border: none;
+        padding: 14px 32px;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .btn-secondary-custom:hover {
+        background: #cbd5e0;
+        color: #2d3748;
+        transform: translateY(-2px);
+    }
+    
+    .alert-custom {
+        border: none;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInDown 0.4s ease-out;
+    }
+    
+    @@keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .alert-danger-custom {
+        background: #fee;
+        color: #c53030;
+    }
+    
+    .required-mark {
+        color: #ef4444;
+        font-weight: bold;
+    }
+    
+    .validation-message {
+        font-size: 13px;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .password-requirements {
+        background: #f7fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+    }
+    
+    .password-requirements ul {
+        margin: 0;
+        padding-left: 20px;
+        list-style: none;
+    }
+    
+    .password-requirements li {
+        font-size: 13px;
+        color: #718096;
+        margin: 6px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.3s ease;
+    }
+    
+    .password-requirements li.met {
+        color: #10b981;
+    }
+    
+    .password-requirements li i {
+        width: 16px;
+    }
+</style>
+
+<div class="user-form-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card form-card">
+                    <div class="card-header-custom">
+                        <h3>
+                            <div class="icon-circle">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <span>Add New User</span>
+                        </h3>
+                    </div>
+                    <div class="card-body-custom">
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger-custom alert-custom" role="alert">
+                                <i class="fas fa-exclamation-circle fa-lg"></i>
+                                <span>@TempData["ErrorMessage"]</span>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <form asp-action="AddUser" method="post" id="addUserForm" novalidate>
+                            @Html.AntiForgeryToken()
+                            
+                            
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger-custom alert-custom"></div>
+
+                            <!-- Username -->
+                            <div class="mb-4">
+                                <label asp-for="Username" class="form-label">
+                                    <i class="fas fa-user-circle"></i> Username <span class="required-mark">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input asp-for="Username"
+                                           class="form-control"
+                                           placeholder="Enter username"
+                                           required
+                                           minlength="3"
+                                           maxlength="50"
+                                           autocomplete="off"/>
+                                </div>
+                                <span id="username-error" class="text-danger validation-message"></span>
+                                <small class="form-text">
+                                    <i class="fas fa-info-circle"></i> Username must be 3-50 characters
+                                </small>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-4">
+                                <label asp-for="Password" class="form-label">
+                                    <i class="fas fa-key"></i> Password <span class="required-mark">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input asp-for="Password"
+                                           type="password"
+                                           class="form-control"
+                                           placeholder="Enter password"
+                                           required
+                                           minlength="6"
+                                           id="password"
+                                           autocomplete="new-password"/>
+                                    <button class="btn-toggle-password"
+                                            type="button"
+                                            id="togglePassword">
+                                        <i class="fas fa-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="passwordStrength">
+                                    <div class="password-strength-bar" id="strengthBar"></div>
+                                </div>
+                                <span id="password-error" class="text-danger validation-message"></span>
+
+                                <div class="password-requirements">
+                                    <small style="font-weight: 600; color: #2d3748;">Password must contain:</small>
+                                    <ul id="passwordReqs">
+                                        <li id="req-length"><i class="fas fa-times-circle"></i> At least 6 characters</li>
+                                        <li id="req-uppercase"><i class="fas fa-times-circle"></i> One uppercase letter</li>
+                                        <li id="req-lowercase"><i class="fas fa-times-circle"></i> One lowercase letter</li>
+                                        <li id="req-number"><i class="fas fa-times-circle"></i> One number</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label">
+                                    <i class="fas fa-shield-alt"></i> Confirm Password <span class="required-mark">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password"
+                                           class="form-control"
+                                           id="confirmPassword"
+                                           placeholder="Re-enter password"
+                                           required
+                                           autocomplete="new-password"/>
+                                    <span class="input-group-text" id="matchIcon" style="display: none;">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    </span>
+                                </div>
+                                <span id="confirm-error" class="text-danger validation-message"></span>
+                                <small class="text-danger validation-message d-none" id="passwordError">
+                                    <i class="fas fa-exclamation-triangle"></i> Passwords do not match
+                                </small>
+                            </div>
+
+                            <!-- Role -->
+                            <div class="mb-4">
+                                <label asp-for="RoleId" asp-items="roles" class="form-label">
+                                    <i class="fas fa-user-tag"></i> Role <span class="required-mark">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user-shield"></i>
+                                    </span>
+                                    <select asp-for="RoleId"
+                                            class="form-select"
+                                            asp-items="ViewBag.Roles"
+                                            required
+                                    >
+                                        <option value="">-- Select Role --</option>
+                                    </select>
+                                </div>
+                                <span id="role-error" class="text-danger validation-message"></span>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex justify-content-between mt-5 gap-3">
+                                <a asp-action="ListUsers" class="btn btn-secondary-custom flex-fill">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </a>
+                                <button type="submit" class="btn btn-primary-custom flex-fill">
+                                    <i class="fas fa-save"></i> Create User
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+
+    <script>
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const passwordError = document.getElementById('passwordError');
+    const matchIcon = document.getElementById('matchIcon');
+    const strengthBar = document.getElementById('strengthBar');
+    const form = document.getElementById('addUserForm');
+
+    const requirements = {
+        length: { element: document.getElementById('req-length'), regex: /.{6,}/ },
+        uppercase: { element: document.getElementById('req-uppercase'), regex: /[A-Z]/ },
+        lowercase: { element: document.getElementById('req-lowercase'), regex: /[a-z]/ },
+        number: { element: document.getElementById('req-number'), regex: /[0-9]/ },
+};
+    
+    togglePassword.addEventListener('click', function () {
+        if (password.type === 'password') {
+            password.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+        });
+    
+    password.addEventListener('input', function () {
+        const value = password.value;
+        let metCount = 0;
+
+        for (let key in requirements) {
+            const req = requirements[key];
+            if (req.regex.test(value)) {
+                req.element.classList.add('met');
+                req.element.querySelector('i').className = 'fas fa-check-circle';
+                metCount++;
+            } else {
+                req.element.classList.remove('met');
+                req.element.querySelector('i').className = 'fas fa-times-circle';
+            }
+        }
+        
+        strengthBar.className = 'password-strength-bar';
+        if (metCount === 0) {
+            strengthBar.style.width = '0%';
+        } else if (metCount <= 2) {
+            strengthBar.classList.add('strength-weak');
+            strengthBar.style.width = '33%';
+        } else if (metCount === 3) {
+            strengthBar.classList.add('strength-medium');
+            strengthBar.style.width = '66%';
+        } else {
+            strengthBar.classList.add('strength-strong');
+            strengthBar.style.width = '100%';
+        }
+
+        checkPasswordMatch();
+    });
+    
+    function checkPasswordMatch() {
+        if (confirmPassword.value === '') {
+            passwordError.classList.add('d-none');
+            confirmPassword.classList.remove('is-invalid', 'is-valid');
+            matchIcon.style.display = 'none';
+            return;
+        }
+
+        if (password.value !== confirmPassword.value) {
+            passwordError.classList.remove('d-none');
+            confirmPassword.classList.add('is-invalid');
+            confirmPassword.classList.remove('is-valid');
+            matchIcon.style.display = 'none';
+        } else {
+            passwordError.classList.add('d-none');
+            confirmPassword.classList.remove('is-invalid');
+            confirmPassword.classList.add('is-valid');
+            matchIcon.style.display = 'flex';
+        }
+        }
+
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+
+    // Form submission validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const usernameInput = document.querySelector('input[name="Username"]');
+        const usernameError = document.getElementById('username-error');
+        const passwordInput = document.querySelector('input[name="Password"]');
+        const passwordError = document.getElementById('password-error');
+        const confirmInput = document.querySelector('input[id="confirmPassword"]');
+        const confirmError = document.getElementById('confirm-error');
+        const roleInput = document.querySelector('select[id="RoleId"]');
+        const roleError = document.getElementById('role-error');
+
+        usernameInput.addEventListener('input', function() {
+            usernameError.textContent = '';
+            usernameInput.classList.remove('is-invalid');
+        });
+
+        passwordInput.addEventListener('input', function() {
+            passwordError.textContent = '';
+            passwordInput.classList.remove('is-invalid');
+        });
+
+        confirmInput.addEventListener('input', function() {
+            confirmError.textContent = '';
+            confirmInput.classList.remove('is-invalid');
+        });
+
+        roleInput.addEventListener('change', () => {
+            if (roleInput.value && roleInput.value !== "") {
+                roleError.textContent = '';
+                roleInput.classList.remove('is-invalid');
+            }
+});
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let hasError = false;
+            
+            if (!usernameInput.value.trim()) {
+                usernameError.textContent = 'Please enter username';
+                usernameInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            const pwdValue = passwordInput.value.trim();
+            let unmetReqs = [];
+            for (let key in requirements) {
+                if (!requirements[key].regex.test(pwdValue)) {
+                    unmetReqs.push(key);
+                }
+            }
+
+            if (pwdValue === '') {
+                passwordError.textContent = 'Please enter password';
+                passwordInput.classList.add('is-invalid');
+                hasError = true;
+            } else if (unmetReqs.length > 0) {
+                passwordError.textContent = 'Password does not meet requirements';
+                passwordInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            
+            if (confirmInput.value.trim() === '') {
+                confirmError.textContent = 'Please enter confirm password';
+                confirmInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            if (pwdValue !== confirmInput.value.trim()) {
+                hasError = true;
+            }
+
+            if (!roleInput.value || roleInput.value === "") {
+                roleError.textContent = 'Please choose a role';
+                roleInput.classList.add('is-invalid');
+                hasError = true;
+            }
+            form.classList.add('was-validated')
+
+            if (!hasError) {
+                form.submit();
+            }
+        });
+    });
+</script>
+}
+
