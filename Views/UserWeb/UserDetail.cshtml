@@ -1,0 +1,330 @@
+@model HotelManagement.Services.Dto.UserResponseModel
+@{
+    ViewData["Title"] = "User Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-user-circle"></i> User Details
+                    </h2>
+                    <p class="text-muted mb-0">View and manage user information</p>
+                </div>
+                <a asp-action="ListUser" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ValidationErrors"] != null)
+            {
+                var errors = System.Text.Json.JsonSerializer.Deserialize<List<string>>(TempData["ValidationErrors"].ToString());
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Validation Errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach (var error in errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row">
+                <!-- User Info Card -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <div class="user-avatar-large bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                     style="width: 120px; height: 120px; font-size: 48px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <h4 class="mb-1">@Model.Username</h4>
+                            <span class="badge bg-@(Model.Role.Name == "Admin" ? "danger" : Model.Role.Name == "Manager" ? "warning" : "info") mb-3">
+                                @Model.Role.Name
+                            </span>
+                            <div class="mb-3">
+                                <span class="badge bg-@(Model.IsActive ? "success" : "secondary") fs-6">
+                                    <i class="fas fa-circle"></i> @(Model.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+                                    <i class="fas fa-edit"></i> Edit User
+                                </button>
+                                
+                                <button type="button"  
+                                        class="btn btn-outline-@(Model.IsActive ? "warning" : "success") w-100" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#toggleStatusModal">
+                                    <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> @(Model.IsActive ? "Deactivate" : "Activate")
+                                </button>
+
+
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash"></i> Delete User
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Summary -->
+                    <div class="card shadow-sm border-0 mt-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-chart-line"></i> Activity Summary</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Created At:</span>
+                                <strong>@Model.CreatedAt.ToString("MMM dd, yyyy")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Last Updated:</span>
+                                <strong>@((Model.UpdatedAt == default(DateTime)) 
+                                            ? "Never" 
+                                            : Model.UpdatedAt.ToString("MMM dd, yyyy hh:mm tt"))
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Details Card -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> User Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">User ID</label>
+                                    <div class="fw-bold">#@Model.Id</div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">Username</label>
+                                    <div class="fw-bold">@Model.Username</div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">Role</label>
+                                    <div>
+                                        <span class="badge bg-@(Model.Role.Name == "Admin" ? "danger" : Model.Role.Name == "Manager" ? "warning" : "info")">
+                                            @Model.Role.Name
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">Status</label>
+                                    <div>
+                                        <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                                            @(Model.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">Created Date</label>
+                                    <div class="fw-bold">@Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="text-muted small mb-1">Last Updated</label>
+                                    <div class="fw-bold">
+                                        @((Model.UpdatedAt == default(DateTime)) 
+                                            ? "Never" 
+                                            : Model.UpdatedAt.ToString("MMM dd, yyyy hh:mm tt"))
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info Cards -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 border-start border-primary border-4">
+                                <div class="card-body">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-key"></i> Security
+                                    </h6>
+                                    <p class="text-muted mb-2 small">Password last changed: <strong>Never</strong></p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-lock"></i> Reset Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 border-start border-success border-4">
+                                <div class="card-body">
+                                    <h6 class="text-success mb-3">
+                                        <i class="fas fa-shield-alt"></i> Permissions
+                                    </h6>
+                                    <p class="text-muted small mb-0">Role: <strong>@Model.Role.Name</strong></p>
+                                    <p class="text-muted small mb-2">Full access granted</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="UpdateUser" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="fas fa-edit"></i> Edit User
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="Username" class="form-control" value="@Model.Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <select name="RoleId" class="form-select" required asp-items="ViewBag.Roles">
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="IsActive" class="form-check-input" id="isActive" 
+                               value="true" @(Model.IsActive ? "checked" : "")>
+                        <label class="form-check-label" for="isActive">
+                            Active User
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to delete user <strong>@Model.Username</strong>?</p>
+                <p class="text-danger mb-0"><small><i class="fas fa-exclamation-circle"></i> This action cannot be undone!</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form asp-action="DeleteUser" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete User
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activate/Deactivate Confirmation Modal -->
+<div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header @(Model.IsActive ? "bg-warning" : "bg-success") text-white">
+                <h5 class="modal-title" id="toggleStatusModalLabel">
+                    <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> Confirm @(Model.IsActive ? "Deactivation" : "Activation")
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Are you sure you want to <strong>@(Model.IsActive ? "deactivate" : "activate")</strong> user <strong>@Model.Username</strong>?
+                </p>
+                <p class="text-warning mb-0"><small><i class="fas fa-exclamation-circle"></i> This action will change the user's status.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form asp-action="ToggleUserStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-@(Model.IsActive ? "warning" : "success")">
+                        <i class="fas fa-@(Model.IsActive ? "ban" : "check")"></i> @(Model.IsActive ? "Deactivate" : "Activate")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .user-avatar-large {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .card {
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .border-4 {
+        border-width: 4px !important;
+    }
+</style>
+
+
+@section Scripts {
+<script>
+    // Auto dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+</script>
+}

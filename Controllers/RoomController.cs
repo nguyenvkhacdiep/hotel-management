@@ -1,12 +1,14 @@
 using HotelManagement.Services.Dto;
 using HotelManagement.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class RoomController: ControllerBase
 {
     private readonly IRoomService _roomService;
@@ -24,6 +26,7 @@ public class RoomController: ControllerBase
     }
 
     [HttpGet("get-all-rooms")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllRooms(
         [FromQuery] RoomRequestParameters roomRequestParameters)
     {
@@ -32,7 +35,8 @@ public class RoomController: ControllerBase
     }
 
     
-    [HttpGet("get-room/{id}")]
+    [HttpGet("get-room/{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetRoom(Guid id)
     {
         var result = await _roomService.GetRoomById(id);

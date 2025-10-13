@@ -1,4 +1,5 @@
 ﻿using AutoMapper.EquivalencyExpression;
+using Ecommerce.Base.Helpers;
 using HotelManagement.Models;
 using HotelManagement.Services;
 using HotelManagement.Services.Common;
@@ -24,6 +25,9 @@ public static class ServiceExtensions
         services.AddScoped<IRoomTypeService, RoomTypeService>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IRoomPricesService, RoomPricesService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<JwtTokenGenerator>();
     }
     
 }

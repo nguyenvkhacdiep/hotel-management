@@ -115,7 +115,7 @@ public async Task<string> DeleteUserAsync(Guid id)
         if(findUser == null)
             throw new NotFoundException("User not found.");
         
-        findUser.IsActive = false;
+        findUser.IsActive = !findUser.IsActive;
         findUser.UpdatedAt = DateTime.UtcNow;
         
         _dbcontext.Users.Update(findUser);
