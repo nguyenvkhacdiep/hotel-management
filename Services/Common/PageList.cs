@@ -1,6 +1,8 @@
-﻿namespace HotelManagement.Services.Common;
+﻿using HotelManagement.Web.ViewComponents;
 
-public class PageList<T>
+namespace HotelManagement.Services.Common;
+
+public class PageList<T>: IPaginationInfo
 {
     public PageList()
     {
@@ -21,4 +23,11 @@ public class PageList<T>
     public int TotalPages { get; set; }
     public List<T> Data { get; set; }
     public int TotalItems { get; set; }
+    public bool HasPreviousPage => PageIndex > 1;
+    public bool HasNextPage => PageIndex < TotalPages;
+    
+    public static PageList<T> Empty()
+    {
+        return new PageList<T>(Enumerable.Empty<T>(), 0, 1, 10);
+    }
 }

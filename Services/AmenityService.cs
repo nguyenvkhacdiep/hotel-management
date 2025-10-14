@@ -141,4 +141,19 @@ public class AmenityService : IAmenityService
         
         return "Amenity has been deleted successfully.";
     }
+    
+    public async Task<string> ToggleStatus(Guid id)
+    {
+        var findAmenity = await _dbcontext.Amenities.FirstOrDefaultAsync(u => u.Id == id);
+        
+        if(findAmenity == null)
+            throw new NotFoundException("User not found.");
+        
+        findAmenity.IsActive = !findAmenity.IsActive;
+        
+        _dbcontext.Amenities.Update(findAmenity);
+        await _dbcontext.SaveChangesAsync();
+        
+        return "Amenity has been toggled successfully.";
+    }
 }

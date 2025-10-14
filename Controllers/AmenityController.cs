@@ -55,4 +55,13 @@ public class AmenityController: ControllerBase
 
         return Ok(new { message });
     }
+    
+    [HttpPatch("toggle-status/{id:guid}")]
+    public async Task<IActionResult> ToggleStatus(Guid id)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var message = await _amenityService.ToggleStatus(id);
+        return Ok(new { message });
+    }
 }

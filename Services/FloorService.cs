@@ -25,7 +25,7 @@ public class FloorService: IFloorService
     
     public async Task<string> AddFloorAsync(AddFloorDto addFloorDto)
     {
-        var existingFloor = await _dbcontext.Floors.Where(a => a.FloorName == addFloorDto.FloorName).FirstOrDefaultAsync();
+        var existingFloor = await _dbcontext.Floors.Where(a => a.FloorNumber == addFloorDto.FloorNumber).FirstOrDefaultAsync();
        
         if (existingFloor != null)
         {
@@ -33,8 +33,8 @@ public class FloorService: IFloorService
             {
                 new()
                 {
-                    Field = "floor Name",
-                    Issue = "Floor name is already in use."
+                    Field = "floorNumber",
+                    Issue = "Floor number is already in use."
                 }
             };
             throw new BadRequestException("INVALID_FIELD", errors);
@@ -61,7 +61,7 @@ public class FloorService: IFloorService
 
         if (!string.IsNullOrWhiteSpace(parameters.SearchKey))
             query = query.Where(x =>
-                x.FloorName != null && x.FloorName.Contains(parameters.SearchKey));
+                x.FloorNumber != null && x.FloorNumber.Contains(parameters.SearchKey));
 
         if (string.IsNullOrWhiteSpace(parameters.OrderBy))
             query = query.OrderByDescending(x => x.FloorName);
