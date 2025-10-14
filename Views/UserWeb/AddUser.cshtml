@@ -301,8 +301,7 @@
                             
                             
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger-custom alert-custom"></div>
-
-                            <!-- Username -->
+                            
                             <div class="mb-4">
                                 <label asp-for="Username" class="form-label">
                                     <i class="fas fa-user-circle"></i> Username <span class="required-mark">*</span>
@@ -335,18 +334,12 @@
                                         <i class="fas fa-lock"></i>
                                     </span>
                                     <input asp-for="Password"
-                                           type="password"
                                            class="form-control"
                                            placeholder="Enter password"
                                            required
                                            minlength="6"
                                            id="password"
                                            autocomplete="new-password"/>
-                                    <button class="btn-toggle-password"
-                                            type="button"
-                                            id="togglePassword">
-                                        <i class="fas fa-eye" id="eyeIcon"></i>
-                                    </button>
                                 </div>
                                 <div class="password-strength" id="passwordStrength">
                                     <div class="password-strength-bar" id="strengthBar"></div>
@@ -373,7 +366,7 @@
                                     <span class="input-group-text">
                                         <i class="fas fa-lock"></i>
                                     </span>
-                                    <input type="password"
+                                    <input
                                            class="form-control"
                                            id="confirmPassword"
                                            placeholder="Re-enter password"
@@ -411,7 +404,7 @@
 
                             <!-- Buttons -->
                             <div class="d-flex justify-content-between mt-5 gap-3">
-                                <a asp-action="ListUsers" class="btn btn-secondary-custom flex-fill">
+                                <a asp-action="ListUser" class="btn btn-secondary-custom flex-fill">
                                     <i class="fas fa-arrow-left"></i> Back
                                 </a>
                                 <button type="submit" class="btn btn-primary-custom flex-fill">
@@ -444,19 +437,7 @@
         uppercase: { element: document.getElementById('req-uppercase'), regex: /[A-Z]/ },
         lowercase: { element: document.getElementById('req-lowercase'), regex: /[a-z]/ },
         number: { element: document.getElementById('req-number'), regex: /[0-9]/ },
-};
-    
-    togglePassword.addEventListener('click', function () {
-        if (password.type === 'password') {
-            password.type = 'text';
-            eyeIcon.classList.remove('fa-eye');
-            eyeIcon.classList.add('fa-eye-slash');
-        } else {
-            password.type = 'password';
-            eyeIcon.classList.remove('fa-eye-slash');
-            eyeIcon.classList.add('fa-eye');
-        }
-        });
+    };
     
     password.addEventListener('input', function () {
         const value = password.value;
@@ -513,8 +494,7 @@
         }
 
     confirmPassword.addEventListener('input', checkPasswordMatch);
-
-    // Form submission validation
+    
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('form');
         const usernameInput = document.querySelector('input[name="Username"]');
@@ -546,7 +526,7 @@
                 roleError.textContent = '';
                 roleInput.classList.remove('is-invalid');
             }
-});
+    k});
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -591,7 +571,6 @@
                 roleInput.classList.add('is-invalid');
                 hasError = true;
             }
-            form.classList.add('was-validated')
 
             if (!hasError) {
                 form.submit();

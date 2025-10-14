@@ -1,0 +1,111 @@
+@model HotelManagement.Services.Dto.AddFloorDto
+
+@{
+    ViewData["Title"] = "Add New Floor";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-building"></i> Add New Floor
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    <form asp-action="AddFloor" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FloorName" class="form-label">Floor Name</label>
+                            <input asp-for="FloorName" class="form-control" placeholder="Enter floor name (optional)"/>
+                            <span asp-validation-for="FloorName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FloorNumber" class="form-label">
+                                Floor Number <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FloorNumber" class="form-control" placeholder="E.g: 1, 2, 3 or G, B1" required/>
+                            <span id="floor-number-error" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TotalRooms" class="form-label">
+                                Total Rooms <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="TotalRooms" type="number" class="form-control" min="0" placeholder="Enter total number of rooms" required/>
+                            <span id="total-room-error" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter description (optional)"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const floorNumberInput = document.querySelector('input[name="FloorNumber"]');
+            const floorNumberError = document.getElementById('floor-number-error');
+            const totalRoomsInput = document.querySelector('input[id="TotalRooms"]');
+            const totalRoomsError = document.getElementById('total-room-error');
+
+            floorNumberInput.addEventListener('input', function() {
+                floorNumberError.textContent = '';
+                floorNumberInput.classList.remove('is-invalid');
+            });
+
+            totalRoomsInput.addEventListener('input', function() {
+                totalRoomsError.textContent = '';
+                totalRoomsInput.classList.remove('is-invalid');
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let hasError = false;
+
+                if (!floorNumberInput.value.trim()) {
+                    floorNumberError.textContent = 'Please enter username';
+                    floorNumberInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!totalRoomsInput.value.trim()) {
+                    totalRoomsError.textContent = 'Please enter username';
+                    totalRoomsInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                
+                if (!hasError) {
+                    form.submit();
+                }
+            });
+    });
+    </script>
+}

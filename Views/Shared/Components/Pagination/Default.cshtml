@@ -1,0 +1,31 @@
+@using HotelManagement.Web.Helpers
+@model HotelManagement.Web.ViewComponents.PaginationViewModel
+
+@if (Model.PageList != null && Model.PageList.TotalPages > 1)
+{
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.PageList.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" href="@Url.BuildPageUrl(Model.ActionName, Model.QueryParams, Model.PageList.PageIndex - 1)">
+                    <i class="fa fa-chevron-left"></i>
+                </a>
+            </li>
+            
+            @for (int i = Math.Max(1, Model.PageList.PageIndex - 2); i <= Math.Min(Model.PageList.TotalPages, Model.PageList.PageIndex + 2); i++)
+            {
+                <li class="page-item @(i == Model.PageList.PageIndex ? "active" : "")">
+                    <a class="page-link" href="@Url.BuildPageUrl(Model.ActionName, Model.QueryParams, i)">@i</a>
+                </li>
+            }
+            
+            <li class="page-item @(Model.PageList.HasNextPage ? "" : "disabled")">
+                <a class="page-link" href="@Url.BuildPageUrl(Model.ActionName, Model.QueryParams, Model.PageList.PageIndex + 1)">
+                    <i class="fa fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+        <p class="text-center text-muted">
+            Page @Model.PageList.PageIndex of @Model.PageList.TotalPages
+        </p>
+    </nav>
+}

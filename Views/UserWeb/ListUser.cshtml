@@ -198,13 +198,6 @@
                                                        data-bs-toggle="tooltip">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a asp-action="AddUser" 
-                                                       asp-route-id="@user.Id" 
-                                                       class="btn btn-sm btn-outline-warning"
-                                                       title="Edit User"
-                                                       data-bs-toggle="tooltip">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
                                                     <button type="button" 
                                                             class="btn btn-sm btn-outline-danger"
                                                             onclick="confirmDelete('@user.Id', '@user.Username')"
@@ -251,7 +244,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -291,7 +283,6 @@
 
 
 <style>
-    /* Stats Cards */
     .stats-card {
         transition: transform 0.2s, box-shadow 0.2s;
         cursor: pointer;
@@ -305,8 +296,7 @@
     .stats-icon {
         font-size: 2rem;
     }
-
-    /* Table Styles */
+    
     .table-hover tbody tr {
         transition: all 0.2s;
     }
@@ -324,8 +314,7 @@
     .user-row:hover .user-avatar {
         transform: scale(1.1);
     }
-
-    /* Button Styles */
+    
     .btn-group .btn {
         margin: 0 2px;
         transition: all 0.2s;
@@ -334,25 +323,21 @@
     .btn-group .btn:hover {
         transform: translateY(-2px);
     }
-
-    /* Badge Styles */
+    
     .badge {
         font-weight: 500;
         letter-spacing: 0.3px;
     }
-
-    /* Search Input */
+    
     #searchInput:focus {
         box-shadow: none;
         border-color: #dee2e6;
     }
-
-    /* Card Header */
+    
     .card-header {
         padding: 1.25rem 1.5rem;
     }
-
-    /* Smooth Animations */
+    
     .alert {
         animation: slideDown 0.3s ease-out;
     }
@@ -367,14 +352,12 @@
             transform: translateY(0);
         }
     }
-
-    /* Modal Improvements */
+    
     .modal-content {
         border-radius: 15px;
         overflow: hidden;
     }
-
-    /* Responsive */
+    
     @@media (max-width: 768px) {
         .stats-card {
             margin-bottom: 1rem;
@@ -395,15 +378,13 @@
 
 @section Scripts {
 <script>
-    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function() {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
-
-    // Delete confirmation
+    
     function confirmDelete(userId, username) {
         document.getElementById('deleteUsername').textContent = username;
         document.getElementById('deleteForm').action = '/user/delete/' + userId;
@@ -411,8 +392,7 @@
         var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
         modal.show();
     }
-
-    // Search functionality
+    
     document.getElementById('searchInput').addEventListener('keyup', function() {
         const searchValue = this.value.toLowerCase();
         const rows = document.querySelectorAll('#usersTable tbody tr');
@@ -429,8 +409,7 @@
             }
         });
     });
-
-    // Auto dismiss alerts
+    
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(alert => {
@@ -438,19 +417,16 @@
             bsAlert.close();
         });
     }, 5000);
-
-    // Click row to navigate to detail
+    
     document.querySelectorAll('.user-row').forEach(row => {
         row.addEventListener('click', function(e) {
-            // Don't navigate if clicking on buttons
             if (!e.target.closest('.btn-group')) {
                 const userId = this.getAttribute('data-user-id');
                 window.location.href = '/user/detail/' + userId;
             }
         });
     });
-
-    // Add loading state to buttons
+    
     document.querySelectorAll('form[method="post"]').forEach(form => {
         form.addEventListener('submit', function() {
             const submitBtn = this.querySelector('button[type="submit"]');

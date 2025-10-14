@@ -26,7 +26,6 @@ public class UserWebController : BaseWebController
 
         try
         {
-            // ✅ Sử dụng method từ base controller
             SetAuthorizationHeader();
 
             var apiUrl = BaseApiUrl + "User/get-all-user";
@@ -66,7 +65,6 @@ public class UserWebController : BaseWebController
         
         try
         {
-            // ✅ Sử dụng method từ base controller
             SetAuthorizationHeader();
             
             var rolesResponse = await HttpClient.GetAsync(BaseApiUrl + "Role/get-all-role");
@@ -89,8 +87,14 @@ public class UserWebController : BaseWebController
                 Value = r.Id.ToString(),
                 Text = r.Name
             }).ToList();
+            
+            var model = new AddUserDto
+            {
+                Username = TempData["Username"] as string,
+                Password = TempData["Password"] as string,
+            };
            
-            return View();
+            return View(model);
         }
         catch (Exception ex)
         {
@@ -132,7 +136,13 @@ public class UserWebController : BaseWebController
             else
             {
                 var content = await response.Content.ReadAsStringAsync();
-                SetErrorMessage($"Failed to create user: {content}");
+                var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(content, 
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                
+                SetErrorMessage(errorObj?.Errors[0].Issue);
+                TempData["Username"] = model.Username;
+                TempData["Password"] = model.Password;
+                
                 return RedirectToAction("AddUser");
             }
         }
@@ -307,7 +317,6 @@ public class UserWebController : BaseWebController
             else
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(content);
                 SetErrorMessage($"Failed to delete user: {content}");
                 return RedirectToAction("UserDetail", new { id });
             }

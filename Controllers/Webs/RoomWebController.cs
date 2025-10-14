@@ -4,21 +4,20 @@ using HotelManagement.Services.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Net.Http.Headers;
+using HotelManagement.Extensions;
+using HotelManagement.Models.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HotelManagement.Controllers.Webs
 {
     [Route("room")]
-    public class RoomWebController : Controller
+    public class RoomWebController : BaseWebController
     {
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
 
         public RoomWebController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+            : base(httpClientFactory, configuration)
         {
-            _httpClient = httpClientFactory.CreateClient("HotelAPI");
-            _configuration = configuration;
         }
 
         #region ListRoom
@@ -27,18 +26,13 @@ namespace HotelManagement.Controllers.Webs
         public async Task<IActionResult> ListRoom()
         {
             ViewData["Title"] = "Room List";
-
+            
             try
             {
-                var token = Request.Cookies["AuthToken"];
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue("Bearer", token);
-                }
-
-                var apiUrl = _configuration["ApiSettings:BaseUrl"] + "Room/get-all-rooms";
-                var response = await _httpClient.GetAsync(apiUrl);
+                SetAuthorizationHeader(); ;
+                
+                var apiUrl = BaseApiUrl + $"Room/get-all-rooms";
+                var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -76,16 +70,9 @@ namespace HotelManagement.Controllers.Webs
 
             try
             {
-                var token = HttpContext.Session.GetString("JWTToken");
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue("Bearer", token);
-                }
-
-                var baseUrl = _configuration["ApiSettings:BaseUrl"];
+                SetAuthorizationHeader();
                 
-                var roomTypeResponse = await _httpClient.GetAsync(baseUrl + "RoomType/get-all-room-type");
+                var roomTypeResponse = await HttpClient.GetAsync(BaseApiUrl + "RoomType/get-all-room-type");
                 var roomTypes = new PageList<RoomTypeResponseModel>();
                 if (roomTypeResponse.IsSuccessStatusCode)
                 {
@@ -94,7 +81,7 @@ namespace HotelManagement.Controllers.Webs
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PageList<RoomTypeResponseModel>();
                 }
                 
-                var amenityResponse = await _httpClient.GetAsync(baseUrl + "Amenity/get-all-amenity");
+                var amenityResponse = await HttpClient.GetAsync(BaseApiUrl + "Amenity/get-all-amenity");
                 var amenities = new PageList<AmenityResponseModel>();
                 if (amenityResponse.IsSuccessStatusCode)
                 {
@@ -103,7 +90,7 @@ namespace HotelManagement.Controllers.Webs
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PageList<AmenityResponseModel>();
                 }
                 
-                var floorsResponse = await _httpClient.GetAsync(baseUrl + "Floor/get-all-floor");
+                var floorsResponse = await HttpClient.GetAsync(BaseApiUrl + "Floor/get-all-floor");
                 var floors = new PageList<FloorResponseModel>();
                 if (floorsResponse.IsSuccessStatusCode)
                 {
@@ -151,18 +138,9 @@ namespace HotelManagement.Controllers.Webs
 
             try
             {
-                var token = HttpContext.Session.GetString("JWTToken");
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue("Bearer", token);
-                }
+                SetAuthorizationHeader();
 
-                var baseUrl = _configuration["ApiSettings:BaseUrl"];
-                var jsonContent = JsonSerializer.Serialize(model);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(baseUrl + "Room/add-room", content);
+                var response = await HttpClient.PostAsJsonAsync(BaseApiUrl + "Room/add-room", model);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -179,6 +157,118 @@ namespace HotelManagement.Controllers.Webs
             {
                 TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
                 return await CreateRoom();
+            }
+        }
+        #endregion
+        
+        #region ListFloor
+        [HttpGet("list-floor")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ListFloor(
+            [FromQuery] string? searchKey,
+            [FromQuery] string? orderBy,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            ViewData["Title"] = "Floor List";
+
+            try
+            {
+                var queryParams = new QueryParameters
+                {
+                    SearchKey = searchKey,
+                    OrderBy = orderBy,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+                
+                SetAuthorizationHeader();
+                var apiUrl = BaseApiUrl + $"Floor/get-all-floor?{queryParams.ToQueryString()}";
+                var response = await HttpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var floors = JsonSerializer.Deserialize<PageList<FloorResponseModel>>(content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    ViewBag.SearchKey = searchKey;
+                    ViewBag.QueryParams = queryParams;
+                    ViewData["SearchPlaceholder"] = "Search by floor number";
+                    return View(floors ?? new PageList<FloorResponseModel>());
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "Your session has expired. Please login again.";
+                    return RedirectToAction("Login", "AuthWeb");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Unable to load floor list.";
+                    return View(new PageList<FloorResponseModel>());
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return View(new PageList<FloorResponseModel>());
+            }
+        }
+        #endregion
+        
+        #region CreateFloor - GET
+        [HttpGet("create-floor")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AddFloor()
+        {
+            ViewData["Title"] = "Add New Floor";
+            return View();
+        }
+        #endregion
+        
+        #region CreateFloor - POST
+        [HttpPost("create-floor")]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFloor(AddFloorDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                SetAuthorizationHeader();
+
+                var apiUrl = BaseApiUrl + "Floor/add-new-floor";
+                var response = await HttpClient.PostAsJsonAsync(apiUrl,model);
+                var result = await response.Content.ReadAsStringAsync();
+                
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = "Floor added successfully!";
+                    return RedirectToAction("ListFloor");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "Your session has expired. Please login again.";
+                    return RedirectToAction("Login", "AuthWeb");
+                }
+                else
+                {
+                    var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        
+                    TempData["Error"] = errorObj?.Errors[0].Issue;
+                    return View(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                return View(model);
             }
         }
         #endregion

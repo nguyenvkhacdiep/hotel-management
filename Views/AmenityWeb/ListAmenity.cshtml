@@ -1,0 +1,338 @@
+@using HotelManagement.Models.Common
+@model HotelManagement.Services.Common.PageList<HotelManagement.Services.Dto.AmenityResponseModel>
+@{
+    ViewData["Title"] = "Amenity Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-star text-warning"></i> Amenity Management
+                    </h2>
+                    <p class="text-muted mb-0">Manage hotel amenities and features</p>
+                </div>
+                <a asp-action="AddAmenity" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Add New Amenity
+                </a>
+            </div>
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error!</strong> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <ul class="nav nav-pills" id="categoryFilter">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-category="all">
+                                <i class="fas fa-th"></i> All (@Model.Data.Count)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="0">
+                                Technology (@Model.Data.Count(a => a.Category == AmenityCategory.Technology))
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="1">
+                                Comfort (@Model.Data.Count(a => a.Category == AmenityCategory.Comfort))
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="2">
+                                Service (@Model.Data.Count(a => a.Category == AmenityCategory.Service))
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="3">
+                                Entertainment (@Model.Data.Count(a => a.Category == AmenityCategory.Entertainment))
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="5">
+                                View (@Model.Data.Count(a => a.Category == AmenityCategory.View))
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-category="4">
+                                Others (@Model.Data.Count(a => a.Category == AmenityCategory.Others))
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Amenities Grid -->
+            @if (Model.Data != null && Model.Data.Any())
+            {
+                <div class="row" id="amenitiesGrid">
+                    @foreach (var amenity in Model.Data)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 amenity-card" data-category="@((int)amenity.Category)">
+                            <div class="card h-100 shadow-sm border-0 amenity-item">
+                                <div class="card-body text-center">
+                                    <div class="amenity-icon mb-3">
+                                        @if (!string.IsNullOrEmpty(amenity.AmenityIcon))
+                                        {
+                                            <i class="fas @amenity.AmenityIcon fa-3x text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-star fa-3x text-primary"></i>
+                                        }
+                                    </div>
+                                    <h5 class="card-title mb-2">@amenity.AmenityName</h5>
+                                    <span class="badge bg-@(GetCategoryBadgeColor(amenity?.Category)) mb-2">
+                                        @GetCategoryDisplay(amenity?.Category)
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(amenity.Description))
+                                    {
+                                        <p class="card-text text-muted small mb-3">
+                                            @(amenity.Description.Length > 80 ? amenity.Description.Substring(0, 80) + "..." : amenity.Description)
+                                        </p>
+                                    }
+                                    <div class="d-flex justify-content-center gap-2 mt-3">
+                                        <a asp-action="AmenityDetail" 
+                                           asp-route-id="@amenity.Id" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-@(amenity.IsActive ? "success" : "warning") btn-sm"
+                                                data-amenity-id="@amenity.Id"
+                                                data-amenity-status="@amenity.IsActive"
+                                                onclick="confirmDelete(this)">
+                                            <i class="fas fa-@(amenity.IsActive ? "check" : "ban")"></i>
+                                            @(amenity.IsActive ? "Activate" : "Deactivate")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-star fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Amenities Found</h5>
+                        <p class="text-muted">Get started by adding your first amenity</p>
+                        <a asp-action="AddAmenity" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Add First Amenity
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-secondary text-white border-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirm
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+               
+                <p class="text-center mb-2">Are you sure you want to <span id="status-amenity-text"></span> this amenity?</p>
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <small><strong>Warning:</strong> This action cannot be undone!</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary" id="status-amenity-button">
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetCategoryBadgeColor(AmenityCategory? category)
+    {
+        return category switch
+        {
+            AmenityCategory.Comfort => "primary",
+            AmenityCategory.Technology => "info",
+            AmenityCategory.Entertainment => "warning",
+            AmenityCategory.View => "success",
+            AmenityCategory.Service => "danger",
+            AmenityCategory.Others => "dark",
+            _ => "secondary"
+        };
+    }
+
+    string GetCategoryDisplay(AmenityCategory? category)
+    {
+        return category switch
+        {
+            AmenityCategory.Technology => "Technology",
+            AmenityCategory.Comfort => "Comfort",
+            AmenityCategory.Entertainment => "Entertainment",
+            AmenityCategory.View => "View",
+            AmenityCategory.Service => "Service",
+            _ => "Others"
+        };
+    }
+}
+
+<style>
+    .stats-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+    
+    .amenity-item {
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .amenity-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+
+    .amenity-icon {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .nav-pills .nav-link {
+        color: #6c757d;
+        border-radius: 50px;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .amenity-card {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Badge Styles */
+    .badge {
+        font-weight: 500;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+
+
+@section Scripts {
+<script>
+    document.querySelectorAll('#categoryFilter .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            document.querySelectorAll('#categoryFilter .nav-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            const category = this.getAttribute('data-category');
+            const amenityCards = document.querySelectorAll('.amenity-card');
+            
+            amenityCards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = '';
+                    card.style.animation = 'fadeIn 0.5s ease-out';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    function confirmDelete(button) {
+        const amenityId = button.getAttribute('data-amenity-id');
+        const amenityStatus = button.getAttribute('data-amenity-status');
+        
+        const status = amenityStatus === 'true' ? 'deactivate' : 'active';
+        const statusBtn = amenityStatus === 'true' ? 'Deactivate' : 'Active';
+
+        document.getElementById('status-amenity-text').textContent = status;
+        document.getElementById('status-amenity-button').textContent = statusBtn;
+        document.getElementById('deleteForm').action = '/Amenity/toggle-status/' + amenityId;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+    
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+    
+    document.querySelectorAll('form[method="post"]').forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
+        });
+    });
+</script>
+}

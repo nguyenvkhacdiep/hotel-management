@@ -10,4 +10,6 @@ public interface IAmenityService
     Task<AmenityResponseModel> GetAmenityById(Guid id);
     Task<string> EditAmenity(Guid id, AddAmenityDto amenityDto);
     Task<string> DeleteAmenity(Guid id);
+    Task<string> ToggleStatus(Guid id);
+    
 }

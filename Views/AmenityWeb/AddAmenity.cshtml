@@ -1,0 +1,364 @@
+@model HotelManagement.Services.Dto.AddAmenityDto
+@{
+    ViewData["Title"] = "Add New Amenity";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-plus-circle text-primary"></i> Add New Amenity
+                    </h2>
+                    <p class="text-muted mb-0">Create a new hotel amenity</p>
+                </div>
+                <a asp-action="ListAmenity" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error!</strong> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ValidationErrors"] != null)
+            {
+                var errors = System.Text.Json.JsonSerializer.Deserialize<List<string>>(TempData["ValidationErrors"].ToString());
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Validation Errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach (var error in errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star"></i> Amenity Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CreateAmenity" method="post" id="createAmenityForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-4">
+                            <label asp-for="AmenityName" class="form-label">
+                                <i class="fas fa-tag"></i> Amenity Name <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-star"></i>
+                                </span>
+                                <input asp-for="AmenityName"
+                                       class="form-control"
+                                       placeholder="e.g., Free WiFi, Swimming Pool"
+                                       required>
+                            </div>
+                            <span id="name-error" class="text-danger validation-message"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Category" class="form-label">
+                                <i class="fas fa-list"></i> Category <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-folder"></i>
+                                </span>
+                                <select asp-for="Category" class="form-select" id="categorySelect" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="0">Technology</option>
+                                    <option value="1">Comfort</option>
+                                    <option value="2">View</option>
+                                    <option value="3">Service</option>
+                                    <option value="4">Entertainment</option>
+                                    <option value="5">Others</option>
+                                </select>
+                            </div>
+                            <span id="category-error" class="text-danger validation-message"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="AmenityIcon" class="form-label">
+                                <i class="fas fa-icons"></i> Icon
+                            </label>
+                            <input type="hidden" asp-for="AmenityIcon" id="selectedIcon">
+                            
+                            <div class="icon-selector-container">
+                                <div class="selected-icon-display" id="selectedIconDisplay">
+                                    <i class="fas fa-star fa-2x"></i>
+                                    <span>Click to select icon</span>
+                                </div>
+                                
+                                <div class="icon-grid" id="iconGrid" style="display: none;">
+                                    <div class="icon-item" data-icon="fa-wifi"><i class="fas fa-wifi"></i></div>
+                                    <div class="icon-item" data-icon="fa-swimming-pool"><i class="fas fa-swimming-pool"></i></div>
+                                    <div class="icon-item" data-icon="fa-parking"><i class="fas fa-parking"></i></div>
+                                    <div class="icon-item" data-icon="fa-dumbbell"><i class="fas fa-dumbbell"></i></div>
+                                    <div class="icon-item" data-icon="fa-spa"><i class="fas fa-spa"></i></div>
+                                    <div class="icon-item" data-icon="fa-utensils"><i class="fas fa-utensils"></i></div>
+                                    <div class="icon-item" data-icon="fa-coffee"><i class="fas fa-coffee"></i></div>
+                                    <div class="icon-item" data-icon="fa-concierge-bell"><i class="fas fa-concierge-bell"></i></div>
+                                    <div class="icon-item" data-icon="fa-tv"><i class="fas fa-tv"></i></div>
+                                    <div class="icon-item" data-icon="fa-shower"><i class="fas fa-shower"></i></div>
+                                    <div class="icon-item" data-icon="fa-bath"><i class="fas fa-bath"></i></div>
+                                    <div class="icon-item" data-icon="fa-hot-tub"><i class="fas fa-hot-tub"></i></div>
+                                    <div class="icon-item" data-icon="fa-air-conditioner"><i class="fas fa-snowflake"></i></div>
+                                    <div class="icon-item" data-icon="fa-door-closed"><i class="fas fa-door-closed"></i></div>
+                                    <div class="icon-item" data-icon="fa-lock"><i class="fas fa-lock"></i></div>
+                                    <div class="icon-item" data-icon="fa-bed"><i class="fas fa-bed"></i></div>
+                                    <div class="icon-item" data-icon="fa-couch"><i class="fas fa-couch"></i></div>
+                                    <div class="icon-item" data-icon="fa-glass-martini"><i class="fas fa-glass-martini"></i></div>
+                                    <div class="icon-item" data-icon="fa-smoking-ban"><i class="fas fa-smoking-ban"></i></div>
+                                    <div class="icon-item" data-icon="fa-paw"><i class="fas fa-paw"></i></div>
+                                    <div class="icon-item" data-icon="fa-shuttle-van"><i class="fas fa-shuttle-van"></i></div>
+                                    <div class="icon-item" data-icon="fa-bicycle"><i class="fas fa-bicycle"></i></div>
+                                    <div class="icon-item" data-icon="fa-baby-carriage"><i class="fas fa-baby-carriage"></i></div>
+                                    <div class="icon-item" data-icon="fa-wheelchair"><i class="fas fa-wheelchair"></i></div>
+                                </div>
+                            </div>
+                            <small class="text-muted">Select an icon to represent this amenity</small>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-align-left"></i> Description
+                            </label>
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Enter a detailed description of this amenity..."
+                                      id="description"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Optional - Provide additional details</small>
+                                <small class="text-muted" id="charCount">0 / 500 characters</small>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between gap-3">
+                            <a asp-action="ListAmenity" class="btn btn-secondary flex-fill">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-save"></i> Create Amenity
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Icon Selector Styles */
+    .icon-selector-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+
+    .selected-icon-display {
+        text-align: center;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 8px;
+    }
+
+    .selected-icon-display:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .selected-icon-display i {
+        color: #0d6efd;
+        margin-bottom: 10px;
+    }
+
+    .selected-icon-display span {
+        display: block;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+    }
+
+    .icon-item {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 24px;
+        color: #6c757d;
+    }
+
+    .icon-item:hover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+        color: #0d6efd;
+        transform: scale(1.1);
+    }
+
+    .icon-item.active {
+        border-color: #0d6efd;
+        background: #0d6efd;
+        color: white;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .validation-message {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+    }
+
+    /* Preview Styles */
+    #previewIcon {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* Card Animations */
+    .card {
+        animation: slideUp 0.3s ease-out;
+    }
+
+   @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createAmenityForm');
+    const nameInput = document.querySelector('input[name="AmenityName"]');
+    const categorySelect = document.getElementById('categorySelect');
+    const descriptionInput = document.getElementById('description');
+    const selectedIconInput = document.getElementById('selectedIcon');
+    
+    const nameError = document.getElementById('name-error');
+    const categoryError = document.getElementById('category-error');
+    
+    const iconDisplay = document.getElementById('selectedIconDisplay');
+    const iconGrid = document.getElementById('iconGrid');
+    const iconItems = document.querySelectorAll('.icon-item');
+
+    nameInput.addEventListener('input', function() {
+        nameError.textContent = '';
+        nameInput.classList.remove('is-invalid');
+    });
+
+    categorySelect.addEventListener('input', function() {
+        categoryError.textContent = '';
+        categorySelect.classList.remove('is-invalid');
+    });
+    
+    iconDisplay.addEventListener('click', function() {
+        iconGrid.style.display = iconGrid.style.display === 'none' ? 'grid' : 'none';
+    });
+    
+    iconItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const icon = this.getAttribute('data-icon');
+            selectedIconInput.value = icon;
+            
+            iconItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            iconDisplay.querySelector('i').className = `fas ${icon} fa-2x`;
+            iconDisplay.querySelector('span').textContent = 'Icon selected';
+            
+            iconGrid.style.display = 'none';
+        });
+    });
+    
+
+    descriptionInput.addEventListener('input', function() {
+        const count = this.value.length;
+        document.getElementById('charCount').textContent = `${count} / 500 characters`;
+        
+        if (count > 500) {
+            this.value = this.value.substring(0, 500);
+        }
+    });
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let hasError = false;
+
+        if (!nameInput.value.trim()) {
+            nameError.textContent = 'Please enter amenity name';
+            nameInput.classList.add('is-invalid');
+            hasError = true;
+        }
+
+        if (!categorySelect.value) {
+            categoryError.textContent = 'Please select a category';
+            categorySelect.classList.add('is-invalid');
+            hasError = true;
+        }
+
+        if (!hasError) {
+            this.submit();
+        }
+    });
+    
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+});
+</script>
+}
