@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using Ecommerce.Base.Exceptions;
 using HotelManagement.Data;
@@ -158,10 +159,10 @@ public class RoomService: IRoomService
     {
         var room = await _dbcontext.Rooms
             .Include(r => r.RoomType)
+            .ThenInclude(r => r.RoomPrices.Where(rp => rp.IsActive))
             .Include(r => r.Floor)
             .Include(r => r.RoomAmenities)
             .ThenInclude(ra => ra.Amenity)
-            .Include(r => r.RoomPrices.Where(rp => rp.IsActive))
             .Include(r => r.StatusHistories.OrderByDescending(sh => sh.ChangedAt).Take(10))
             .FirstOrDefaultAsync(r => r.Id == id);
         

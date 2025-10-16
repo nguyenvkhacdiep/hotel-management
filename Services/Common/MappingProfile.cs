@@ -23,7 +23,7 @@ public class MappingProfile : Profile
 
         CreateMap<Room, RoomDetailResponseModel>()
             .IncludeBase<Room, RoomResponseModel>()
-            .ForMember(dest => dest.ActivePrices, opt => opt.MapFrom(src => src.RoomPrices))
+            .ForMember(dest => dest.ActivePrices, opt => opt.MapFrom(src => src.RoomType.RoomPrices))
             .ForMember(dest => dest.RecentStatusChanges, opt => opt.MapFrom(src => src.StatusHistories));
 
         CreateMap<RoomPrice, RoomPriceSummaryDto>()

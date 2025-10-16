@@ -250,7 +250,6 @@
     }
 </style>
 
-<!-- Page Header -->
 <div class="page-header mb-4">
     <h1 class="page-title">Add New Room</h1>
 </div>
@@ -260,7 +259,6 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <!-- Basic Information -->
             <div class="form-card">
                 <div class="section-header">
                     <i class="fas fa-info-circle"></i>
@@ -294,8 +292,7 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Room Type and Floor -->
+                
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -334,8 +331,7 @@
                     <small class="form-text">Describe the room's location on the floor</small>
                 </div>
             </div>
-
-            <!-- Room Details -->
+            
             <div class="form-card">
                 <div class="section-header">
                     <i class="fas fa-bed"></i>
@@ -386,8 +382,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Room Features -->
+            
             <div class="form-card">
                 <div class="section-header">
                     <i class="fas fa-star"></i>
@@ -417,8 +412,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Amenities -->
+            
             <div class="form-card">
                 <div class="section-header">
                     <i class="fas fa-list-check"></i>
@@ -444,8 +438,7 @@
                     }
                 </div>
             </div>
-
-            <!-- Notes -->
+            
             <div class="form-card">
                 <div class="section-header">
                     <i class="fas fa-sticky-note"></i>
@@ -507,10 +500,9 @@
                     <div id="featuresList"></div>
                 </div>
             </div>
-
-            <!-- Submit Buttons -->
+            
             <div class="button-group" style="position: sticky; top: 620px;">
-                <a href="@Url.Action("Index", "RoomWeb")" class="btn-cancel">
+                <a href="@Url.Action("ListRoom", "RoomWeb")" class="btn-cancel">
                     <i class="fas fa-times me-2"></i>Cancel
                 </a>
                 <button type="submit" class="btn-submit">
@@ -522,8 +514,6 @@
 </form>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="~/js/api-service.js"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>

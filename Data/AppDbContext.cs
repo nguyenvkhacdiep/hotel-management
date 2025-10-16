@@ -23,6 +23,7 @@ public class AppDbContext: DbContext
     public DbSet<RoomAmenity> RoomAmenities { get; set; } = null!;
     public DbSet<RoomPrice> RoomPrices { get; set; } = null!;
     public DbSet<RoomStatusHistory> RoomStatusHistories { get; set; } = null!;
+    public DbSet<RoomPriceOverride> RoomPriceOverrides { get; set; } = null!;
     
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -80,11 +81,6 @@ public class AppDbContext: DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        modelBuilder.Entity<RoomPrice>().HasOne(e => e.Room)
-            .WithMany(r => r.RoomPrices)
-            .HasForeignKey(e => e.RoomId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
         modelBuilder.Entity<RoomStatusHistory>().HasOne(e => e.Room)
             .WithMany(r => r.StatusHistories)
             .HasForeignKey(e => e.RoomId)
@@ -98,5 +94,47 @@ public class AppDbContext: DbContext
         
         modelBuilder.Entity<RoomPrice>().Property(e => e.SeasonName)
             .HasConversion<string>();
+        
+        modelBuilder.Entity<RoomPrice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SeasonName).HasMaxLength(100);
+            entity.Property(e => e.PricePerNight).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Priority).HasDefaultValue(0);
+            
+            entity.HasOne(e => e.RoomType)
+                .WithMany()
+                .HasForeignKey(e => e.RoomTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.RoomTypeId);
+            entity.HasIndex(e => new { e.StartDate, e.EndDate });
+        });
+        
+        modelBuilder.Entity<RoomPriceOverride>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PriceAdjustment).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Reason).HasMaxLength(200);
+            
+            entity.HasOne(e => e.Room)
+                .WithMany()
+                .HasForeignKey(e => e.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.RoomId);
+        });
+        
+        modelBuilder.Entity<Room>()
+            .HasOne(r => r.RoomType)
+            .WithMany(rt => rt.Rooms)
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<RoomPrice>()
+            .HasOne(rp => rp.RoomType)
+            .WithMany(rt => rt.RoomPrices)
+            .HasForeignKey(rp => rp.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

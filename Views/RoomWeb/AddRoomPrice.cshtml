@@ -1,0 +1,270 @@
+@model HotelManagement.Services.Dto.AddRoomPriceDto
+
+@{
+    ViewData["Title"] = "Add New Room Price";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2>
+                <i class="bi bi-currency-dollar"></i> Add Room Type Price
+            </h2>
+            <p class="text-muted">Add a new price for a room type based on season and dates</p>
+        </div>
+    </div>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Room Price Details</h5>
+        </div>
+        <div class="card-body">
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            <form asp-action="AddRoomPrice" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="RoomTypeId" class="form-label"><i class="bi bi-house-door"></i> Room Type<span class="text-danger">*</span></label>
+                    <select asp-for="RoomTypeId" class="form-select" required>
+                        <option value="">Select a room type</option>
+                        @if (ViewBag.RoomTypes != null)
+                        {
+                            foreach (var roomType in ViewBag.RoomTypes)
+                            {
+                                <option value="@roomType.Id">@roomType.Name</option>
+                            }
+                        }
+                    </select>
+                    <span id="room-type-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="SeasonName" class="form-label"><i class="bi bi-calendar-event"></i> Season <span class="text-danger">*</span></label>
+                    <select asp-for="SeasonName" class="form-select" required>
+                        <option value="">Select a season</option>
+                        <option value="0">HighSeason</option>
+                        <option value="1">LowSeason</option>
+                        <option value="2">PeakSeason</option>
+                        <option value="3">Holiday</option>
+                    </select>
+                    <span id="season-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PricePerNight" class="form-label"><i class="bi bi-currency-dollar"></i> Price Per Night <span class="text-danger">*</span></label>
+                    <input asp-for="PricePerNight" type="number" step="0.01" class="form-control" placeholder="Enter price per night" min="0" required/>
+                    <span id="price-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StartDate" class="form-label"><i class="bi bi-calendar"></i> Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" required/>
+                    <span id="start-date-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EndDate" class="form-label"><i class="bi bi-calendar-plus"></i> End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" required/>
+                    <span id="end-date-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DayType" class="form-label"><i class="bi bi-clock"></i> Day Type <span class="text-danger">*</span></label>
+                    <select asp-for="DayType" class="form-select" required>
+                        <option value="">Select day type</option>
+                        <option value="0">Weekday</option>
+                        <option value="1">Weekend</option>
+                        <option value="2">Holiday</option>
+                        <option value="3">All</option>
+                    </select>
+                    <span id="day-type-error" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DayType" class="form-label d-block mb-2"><i class="bi bi-toggle-on"></i>Active <span class="text-danger">*</span></label>
+                    <label class="switch">
+                        <input asp-for="IsActive" type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <span id="is-active-error" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Room Price
+                </button>
+                <a asp-action="ListRoomPrice" class="btn btn-outline-secondary ms-2">
+                    <i class="bi bi-arrow-left-circle"></i> Back to List
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      background-color: #ccc;
+      border-radius: 24px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: 0.3s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    input:checked + .slider {
+      background-color: #0d6efd;
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const roomTypeInput = document.querySelector('select[name="RoomTypeId"]');
+            const roomTypeError = document.getElementById('room-type-error');
+            const seasonInput = document.querySelector('select[id="SeasonName"]');
+            const seasonError = document.getElementById('season-error');
+            const pricePerNightInput = document.querySelector('input[name="PricePerNight"]');
+            const pricePerNightError = document.getElementById('price-error');
+            const startDateInput = document.querySelector('input[id="StartDate"]');
+            const startDateError = document.getElementById('start-date-error');
+            const endDateInput = document.querySelector('input[name="EndDate"]');
+            const endDateError = document.getElementById('end-date-error');
+            const dayTypeInput = document.querySelector('select[id="DayType"]');
+            const dayTypeError = document.getElementById('day-type-error');
+
+            roomTypeInput.addEventListener('input', function() {
+                roomTypeError.textContent = '';
+                roomTypeInput.classList.remove('is-invalid');
+            });
+
+            seasonInput.addEventListener('input', function() {
+                seasonError.textContent = '';
+                seasonInput.classList.remove('is-invalid');
+            });
+
+            pricePerNightInput.addEventListener('input', function() {
+                pricePerNightError.textContent = '';
+                pricePerNightInput.classList.remove('is-invalid');
+            });
+
+            startDateInput.addEventListener('input', function() {
+                startDateError.textContent = '';
+                startDateInput.classList.remove('is-invalid');
+            });
+
+            endDateInput.addEventListener('input', function() {
+                endDateError.textContent = '';
+                endDateInput.classList.remove('is-invalid');
+            });
+
+            dayTypeInput.addEventListener('input', function() {
+                dayTypeError.textContent = '';
+                dayTypeInput.classList.remove('is-invalid');
+            });
+
+            form.addEventListener('submit', function(e) {
+                console.log('submit!');
+                e.preventDefault();
+
+                let hasError = false;
+
+                if (!roomTypeInput.value.trim()) {
+                    roomTypeError.textContent = 'Please select room type';
+                    roomTypeInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!seasonInput.value.trim()) {
+                    seasonError.textContent = 'Please enter season';
+                    seasonInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!pricePerNightInput.value.trim()) {
+                    pricePerNightError.textContent = 'Please enter price per night';
+                    pricePerNightInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!startDateInput.value.trim()) {
+                    startDateError.textContent = 'Please enter start date';
+                    startDateInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!endDateInput.value.trim()) {
+                    endDateError.textContent = 'Please enter end date';
+                    endDateInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!dayTypeInput.value.trim()) {
+                    dayTypeError.textContent = 'Please enter day type';
+                    dayTypeInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!hasError) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+}

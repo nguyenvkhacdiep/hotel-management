@@ -499,9 +499,6 @@
                             <button class="btn-room btn-view" onclick="viewRoom('@room.Id')">
                                 <i class="fas fa-eye me-1"></i>Details
                             </button>
-                            <button class="btn-room btn-edit" onclick="editRoom('@room.Id')">
-                                <i class="fas fa-edit me-1"></i>Edit
-                            </button>
                             <button class="btn-room btn-delete" onclick="deleteRoom('@room.Id', '@room.RoomNumber')">
                                 <i class="fas fa-trash me-1"></i>Delete
                             </button>
@@ -518,7 +515,7 @@
                 <i class="fas fa-bed"></i>
                 <h3>No rooms yet</h3>
                 <p>Click "Add New Room" to get started</p>
-                <a href="@Url.Action("Create", "RoomWeb")" class="btn btn-primary mt-3">
+                <a href="@Url.Action("CreateRoom", "RoomWeb")" class="btn btn-primary mt-3">
                     <i class="fas fa-plus me-2"></i>Add your first room
                 </a>
             </div>
@@ -526,7 +523,6 @@
     }
 </div>
 
-<!-- No Results Message -->
 <div id="noResults" class="empty-state" style="display: none;">
     <i class="fas fa-search"></i>
     <h3>No rooms found</h3>
@@ -593,24 +589,8 @@
             filterRooms();
         }
 
-        // View toggle (placeholder)
-        document.getElementById('gridView').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('listView').classList.remove('active');
-        });
-
-        document.getElementById('listView').addEventListener('click', function() {
-            this.classList.add('active');
-            document.getElementById('gridView').classList.remove('active');
-        });
-
-        // Action functions
         function viewRoom(id) {
-            window.location.href = '@Url.Action("Details", "RoomWeb")/' + id;
-        }
-
-        function editRoom(id) {
-            window.location.href = '@Url.Action("Edit", "RoomWeb")/' + id;
+            window.location.href = '/room/room-detail/' + id;
         }
 
         function deleteRoom(id, roomNumber) {

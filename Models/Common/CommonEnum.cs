@@ -43,3 +43,9 @@ public enum AmenityCategory
     Others
 }
 
+public enum AdjustmentType
+{
+    Fixed = 0,
+    Percentage = 1
+}
+

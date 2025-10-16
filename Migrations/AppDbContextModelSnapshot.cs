@@ -337,12 +337,21 @@ namespace HotelManagement.Migrations
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("RoomId")
+                    b.Property<int>("Priority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("RoomTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("RoomTypeId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("SeasonName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -352,9 +361,54 @@ namespace HotelManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("RoomTypeId");
+
+                    b.HasIndex("RoomTypeId1");
+
+                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("RoomPrices");
+                });
+
+            modelBuilder.Entity("HotelManagement.Models.RoomPriceOverride", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AdjustmentType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("PriceAdjustment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("RoomPriceOverrides");
                 });
 
             modelBuilder.Entity("HotelManagement.Models.RoomStatusHistory", b =>
@@ -563,8 +617,23 @@ namespace HotelManagement.Migrations
 
             modelBuilder.Entity("HotelManagement.Models.RoomPrice", b =>
                 {
-                    b.HasOne("HotelManagement.Models.Room", "Room")
+                    b.HasOne("HotelManagement.Models.RoomType", "RoomType")
+                        .WithMany()
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelManagement.Models.RoomType", null)
                         .WithMany("RoomPrices")
+                        .HasForeignKey("RoomTypeId1");
+
+                    b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("HotelManagement.Models.RoomPriceOverride", b =>
+                {
+                    b.HasOne("HotelManagement.Models.Room", "Room")
+                        .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -627,13 +696,13 @@ namespace HotelManagement.Migrations
 
                     b.Navigation("RoomAmenities");
 
-                    b.Navigation("RoomPrices");
-
                     b.Navigation("StatusHistories");
                 });
 
             modelBuilder.Entity("HotelManagement.Models.RoomType", b =>
                 {
+                    b.Navigation("RoomPrices");
+
                     b.Navigation("Rooms");
                 });
 

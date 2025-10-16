@@ -135,12 +135,24 @@ public class FloorService: IFloorService
         {
             throw new NotFoundException("Floor not found");
         }
-        
-        _dbcontext.Floors.Remove(findFloor);
-        await _dbcontext.SaveChangesAsync();
-        
-        return "Floor has been deleted successfully.";
+
+        try
+        {
+            _dbcontext.Floors.Remove(findFloor);
+            await _dbcontext.SaveChangesAsync();
+            return "Floor has been deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException?.Message.Contains("REFERENCE constraint") == true)
+            {
+                throw new InvalidOperationException("Cannot delete this floor because it is being used in another table (e.g., Room).");
+            }
+            
+            throw new Exception(ex.InnerException?.Message ?? ex.Message);
+        }
     }
+
     
     public async Task<string> ToggleActiveFloorAsync(Guid id)
     {
