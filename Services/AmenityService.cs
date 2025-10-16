@@ -135,11 +135,23 @@ public class AmenityService : IAmenityService
         {
             throw new NotFoundException("Amenity not found");
         }
+
+        try
+        {
+            _dbcontext.Amenities.Remove(findAmenity);
+            await _dbcontext.SaveChangesAsync();
         
-        _dbcontext.Amenities.Remove(findAmenity);
-        await _dbcontext.SaveChangesAsync();
-        
-        return "Amenity has been deleted successfully.";
+            return "Amenity has been deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException?.Message.Contains("REFERENCE constraint") == true)
+            {
+                throw new InvalidOperationException("Cannot delete this amenity because it is being used in another table (e.g., Room).");
+            }
+            
+            throw new Exception(ex.InnerException?.Message ?? ex.Message);
+        }
     }
     
     public async Task<string> ToggleStatus(Guid id)

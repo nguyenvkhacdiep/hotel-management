@@ -120,8 +120,11 @@ public class AmenityWebController:BaseWebController
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                SetErrorMessage($"Failed to delete amenity: {content}");
+                var result = await response.Content.ReadAsStringAsync();
+                var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(result, 
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                SetErrorMessage(errorObj?.Message ??"Failed to delete amenity.");
             }
             return RedirectToAction("ListAmenity");
         }

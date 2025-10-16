@@ -204,20 +204,20 @@ public class FloorStatDto
 
 public class AddRoomPriceDto
 {
-    public Guid RoomId { get; set; }
+    public Guid RoomTypeId { get; set; }
     public SeasonType SeasonName { get; set; }
     public decimal PricePerNight { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public DayType DayType { get; set; } = DayType.All;
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
+    public int Priority { get; set; } = 0;
 }
 
 public class RoomPriceResponseModel
 {
     public Guid Id { get; set; }
-    public Guid RoomId { get; set; }
-    public string RoomNumber { get; set; } = null!;
+    public Guid RoomTypeId { get; set; }
     public string RoomTypeName { get; set; } = null!;
     public SeasonType SeasonName { get; set; }
     public decimal PricePerNight { get; set; }
@@ -225,13 +225,14 @@ public class RoomPriceResponseModel
     public DateTime EndDate { get; set; }
     public DayType DayType { get; set; }
     public bool IsActive { get; set; }
+    public int Priority { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
 
 public class RoomPriceRequestParameters : RequestParameters
 {
-    public Guid? RoomId { get; set; }
+    public Guid? RoomTypeId { get; set; }
     public SeasonType? SeasonName { get; set; }
     public DayType? DayType { get; set; }
     public bool? IsActive { get; set; }
@@ -245,15 +246,17 @@ public class UpdateRoomPriceDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public DayType DayType { get; set; }
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
+    public int Priority { get; set; }
 }
 
 public class CurrentRoomPriceResponseModel
 {
-    public decimal price { get; set; }
-    public string? seasonName   { get; set; }
-    public string? dayType {get; set; }
-    public string source {get; set; }
+    public decimal Price { get; set; }
+    public string? SeasonName   { get; set; }
+    public string? DayType {get; set; }
+    public string Source {get; set; }
+    public bool HasOverride {get; set; }
 }
 
 public class PriceCalendarDto
@@ -270,4 +273,69 @@ public class PriceCalendarRequestParameters
 {
     public DateTime StartDate {get; set; }
     public DateTime EndDate {get; set; }
+}
+
+public class AddRoomPriceOverrideDto
+{
+    public Guid RoomId { get; set; }
+    public decimal PriceAdjustment { get; set; }
+    public AdjustmentType AdjustmentType { get; set; }
+    public string? Reason { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime? EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
+}
+
+public class UpdateRoomPriceOverrideDto
+{
+    public decimal PriceAdjustment { get; set; }
+    public AdjustmentType AdjustmentType { get; set; }
+    public string? Reason { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
+}
+
+public class RoomPriceOverrideResponseModel
+{
+    public Guid Id { get; set; }
+    public Guid RoomId { get; set; }
+    public string RoomNumber { get; set; } = string.Empty;
+    public decimal PriceAdjustment { get; set; }
+    public AdjustmentType AdjustmentType { get; set; }
+    public string? Reason { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class GetRoomPriceRequest
+{
+    public Guid RoomId { get; set; }
+    public DateTime CheckInDate { get; set; }
+    public DateTime CheckOutDate { get; set; }
+    public DayType? DayType { get; set; }
+}
+
+public class RoomPriceCalculationResponse
+{
+    public Guid RoomId { get; set; }
+    public string RoomNumber { get; set; } = string.Empty;
+    public decimal BasePrice { get; set; }
+    public decimal SeasonalPrice { get; set; }
+    public decimal? OverrideAdjustment { get; set; }
+    public decimal FinalPrice { get; set; }
+    public string? SeasonName { get; set; }
+    public string? OverrideReason { get; set; }
+    public List<DailyPriceBreakdown> DailyBreakdown { get; set; } = new();
+}
+
+public class DailyPriceBreakdown
+{
+    public DateTime Date { get; set; }
+    public decimal Price { get; set; }
+    public string? SeasonName { get; set; }
+    public DayType DayType { get; set; }
 }

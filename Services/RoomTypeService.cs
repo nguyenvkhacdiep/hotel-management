@@ -32,8 +32,34 @@ public class RoomTypeService: IRoomTypeService
             {
                 new()
                 {
-                    Field = "floor Name",
+                    Field = "floorName",
                     Issue = "Room Type name is already in use."
+                }
+            };
+            throw new BadRequestException("INVALID_FIELD", errors);
+        }
+        
+        if (addRoomTypeDto.PricePerNight <= 0m)
+        {
+            var errors = new List<FieldError>
+            {
+                new()
+                {
+                    Field = "pricePerNight",
+                    Issue = "Price per night must be greater than 0."
+                }
+            };
+            throw new BadRequestException("INVALID_FIELD", errors);
+        }
+
+        if (addRoomTypeDto.MaxCapacity <= 0)
+        {
+            var errors = new List<FieldError>
+            {
+                new()
+                {
+                    Field = "maxCapacity",
+                    Issue = "Max capacity must be greater than 0."
                 }
             };
             throw new BadRequestException("INVALID_FIELD", errors);
@@ -138,9 +164,21 @@ public class RoomTypeService: IRoomTypeService
             throw new NotFoundException("RoomType not found");
         }
         
-        _dbcontext.RoomTypes.Remove(findRoomType);
-        await _dbcontext.SaveChangesAsync();
-        
-        return "RoomType has been deleted successfully.";
+        try
+        {
+            _dbcontext.RoomTypes.Remove(findRoomType);
+            await _dbcontext.SaveChangesAsync();
+
+            return "RoomType has been deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException?.Message.Contains("REFERENCE constraint") == true)
+            {
+                throw new InvalidOperationException("Cannot delete this room type because it is being used in another table (e.g., Room).");
+            }
+            
+            throw new Exception(ex.InnerException?.Message ?? ex.Message);
+        }
     }
 }

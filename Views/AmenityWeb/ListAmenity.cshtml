@@ -80,8 +80,7 @@
                     </ul>
                 </div>
             </div>
-
-            <!-- Amenities Grid -->
+            
             @if (Model.Data != null && Model.Data.Any())
             {
                 <div class="row" id="amenitiesGrid">
@@ -120,9 +119,16 @@
                                         <button type="button" class="btn btn-outline-@(amenity.IsActive ? "success" : "warning") btn-sm"
                                                 data-amenity-id="@amenity.Id"
                                                 data-amenity-status="@amenity.IsActive"
-                                                onclick="confirmDelete(this)">
+                                                onclick="toggleStatus(this)">
                                             <i class="fas fa-@(amenity.IsActive ? "check" : "ban")"></i>
                                             @(amenity.IsActive ? "Activate" : "Deactivate")
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal"  
+                                                data-amenity-id="@amenity.Id"
+                                                onclick="confirmDelete(this)">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -148,11 +154,11 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+<div class="modal fade" id="toggleStatus" tabindex="-1" aria-labelledby="toggleStatusLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-secondary text-white border-0">
-                <h5 class="modal-title" id="deleteModalLabel">
+                <h5 class="modal-title" id="toggleStatusLabel">
                     <i class="fas fa-exclamation-triangle me-2"></i> Confirm
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -169,9 +175,41 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancel
                 </button>
-                <form id="deleteForm" method="post" class="d-inline">
+                <form id="toggle-form" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-primary" id="status-amenity-button">
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title" id="deleteLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirm
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+               
+                <p class="text-center mb-2">Are you sure you want to delete this amenity?</p>
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <small><strong>Warning:</strong> This action cannot be undone!</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form id="delete-form" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        Delete
                     </button>
                 </form>
             </div>
@@ -209,16 +247,6 @@
 }
 
 <style>
-    .stats-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
-    }
-
-    .stats-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
-    }
-    
     .amenity-item {
         transition: all 0.3s;
         cursor: pointer;
@@ -302,19 +330,25 @@
         });
     });
     
-    function confirmDelete(button) {
+    function toggleStatus(button) {
         const amenityId = button.getAttribute('data-amenity-id');
         const amenityStatus = button.getAttribute('data-amenity-status');
         
-        const status = amenityStatus === 'true' ? 'deactivate' : 'active';
-        const statusBtn = amenityStatus === 'true' ? 'Deactivate' : 'Active';
+        const status = amenityStatus === 'True' ? 'deactivate' : 'active';
+        const statusBtn = amenityStatus === 'True' ? 'Deactivate' : 'Active';
 
         document.getElementById('status-amenity-text').textContent = status;
         document.getElementById('status-amenity-button').textContent = statusBtn;
-        document.getElementById('deleteForm').action = '/Amenity/toggle-status/' + amenityId;
+        document.getElementById('toggle-form').action = '/Amenity/toggle-status/' + amenityId;
         
-        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const modal = new bootstrap.Modal(document.getElementById('toggleStatus'));
         modal.show();
+    }
+
+    function confirmDelete(button) {
+        const amenityId = button.getAttribute('data-amenity-id');
+        
+        document.getElementById('delete-form').action = '/Amenity/delete-amenity/' + amenityId;
     }
     
     setTimeout(function() {

@@ -86,6 +86,8 @@ public class AuthWebController: Controller
         var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(result, 
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         
+        Console.WriteLine(result);
+        
         TempData["Error"] = errorObj?.Errors[0].Issue;
         
         TempData["Username"] = model.Username;

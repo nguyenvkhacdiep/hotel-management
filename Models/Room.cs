@@ -29,7 +29,6 @@ public class Room
     public RoomType RoomType { get; set; } = null!;
     public Floor Floor { get; set; } = null!;
     public ICollection<RoomAmenity> RoomAmenities { get; set; } = new List<RoomAmenity>();
-    public ICollection<RoomPrice> RoomPrices { get; set; } = new List<RoomPrice>();
     public ICollection<RoomStatusHistory> StatusHistories { get; set; } = new List<RoomStatusHistory>();
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }
