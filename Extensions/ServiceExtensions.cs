@@ -7,7 +7,6 @@ using HotelManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 
-
 namespace HotelManagement.Extensions;
 
 public static class ServiceExtensions
@@ -27,6 +26,9 @@ public static class ServiceExtensions
         services.AddScoped<IRoomPricesService, RoomPricesService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IServiceService, ServiceService>();
+        services.AddScoped<IBookingServiceService, BookingServiceService>();
+        services.AddScoped<IBookingService, BookingHotelService>();
         services.AddScoped<JwtTokenGenerator>();
     }
     

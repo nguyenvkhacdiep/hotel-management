@@ -39,7 +39,7 @@ public class RoomService: IRoomService
         }
         
         var existingRoom = await _dbcontext.Rooms
-            .Where(r => r.RoomNumber == addRoomDto.RoomNumber)
+            .Where(r => r.RoomNumber == addRoomDto.RoomNumber && r.FloorId == addRoomDto.FloorId)
             .FirstOrDefaultAsync();
         
         if (existingRoom != null)
@@ -113,7 +113,7 @@ public class RoomService: IRoomService
         
         if (!string.IsNullOrWhiteSpace(parameters.SearchKey))
             query = query.Where(x =>
-                x.RoomNumber != null && x.RoomName.Contains(parameters.SearchKey));
+                x.RoomNumber != null && x.RoomNumber.Contains(parameters.SearchKey));
         
         if (parameters.RoomTypeId.HasValue)
             query = query.Where(r => r.RoomTypeId == parameters.RoomTypeId.Value);
@@ -175,7 +175,7 @@ public class RoomService: IRoomService
         return response;
     }
 
-    public async Task<string> UpdateRoom(Guid id, UpdateRoomDto updateRoomDto)
+    public async Task<string> UpdateRoom(Guid id, Guid floorId, UpdateRoomDto updateRoomDto)
     {
         var room = await _dbcontext.Rooms.FindAsync(id);
         
@@ -190,14 +190,8 @@ public class RoomService: IRoomService
             throw new NotFoundException("RoomType not found");
         }
         
-        var floor = await _dbcontext.Floors.FindAsync(updateRoomDto.FloorId);
-        if (floor == null)
-        {
-            throw new NotFoundException("Floor not found");
-        }
-        
         var existingRoom = await _dbcontext.Rooms
-            .FirstOrDefaultAsync(r => r.RoomNumber == updateRoomDto.RoomNumber && r.Id != id);
+            .FirstOrDefaultAsync(r => r.RoomNumber == updateRoomDto.RoomNumber && r.Id != id && r.FloorId == floorId);
 
         if (existingRoom != null)
         {
@@ -215,7 +209,6 @@ public class RoomService: IRoomService
         room.RoomNumber = updateRoomDto.RoomNumber;
         room.RoomName = updateRoomDto.RoomName;
         room.RoomTypeId = updateRoomDto.RoomTypeId;
-        room.FloorId = updateRoomDto.FloorId;
         room.Position = updateRoomDto.Position;
         room.Capacity = updateRoomDto.Capacity;
         room.NumberOfBeds = updateRoomDto.NumberOfBeds;

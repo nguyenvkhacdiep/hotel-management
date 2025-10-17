@@ -4,7 +4,6 @@ using HotelManagement.Data;
 using HotelManagement.Extensions;
 using HotelManagement.Helpers;
 using HotelManagement.Models;
-using HotelManagement.Models.Common;
 using HotelManagement.Services.Common;
 using HotelManagement.Services.Dto;
 using HotelManagement.Services.Interfaces;

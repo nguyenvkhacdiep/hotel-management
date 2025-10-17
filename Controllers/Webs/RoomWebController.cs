@@ -23,15 +23,53 @@ namespace HotelManagement.Controllers.Webs
         #region ListRoom
         [HttpGet("list-room")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ListRoom()
+        public async Task<IActionResult> ListRoom([FromQuery] RoomRequestParameters parameters)
         {
             ViewData["Title"] = "Room List";
             
             try
             {
-                SetAuthorizationHeader(); ;
+                SetAuthorizationHeader();
                 
-                var apiUrl = BaseApiUrl + $"Room/get-all-rooms";
+                var queryParams = new QueryParameters
+                {
+                    SearchKey = parameters?.SearchKey?.Trim(),
+                    PageNumber = parameters?.PageNumber ?? 1,
+                    PageSize = parameters?.PageSize ?? 10,
+                };
+                
+                queryParams.AddFilter("RoomTypeId", parameters?.RoomTypeId.ToString());
+                queryParams.AddFilter("FloorId", parameters?.FloorId.ToString());
+                queryParams.AddFilter("Status", parameters?.Status.ToString());
+                queryParams.AddFilter("SmokingAllowed", parameters?.SmokingAllowed.ToString());
+                queryParams.AddFilter("PetFriendly", parameters?.PetFriendly.ToString());
+                queryParams.AddFilter("Accessible", parameters?.Accessible.ToString());
+                queryParams.AddFilter("MinCapacity", parameters?.MinCapacity.ToString());
+                
+                
+                var responseRoomType = await HttpClient.GetAsync($"RoomType/get-all-room-type?PageSize=10000");
+                var roomTypes = new PageList<RoomTypeResponseModel>();
+
+                if (responseRoomType.IsSuccessStatusCode)
+                {
+                    var content = await responseRoomType.Content.ReadAsStringAsync();
+                    roomTypes = JsonSerializer.Deserialize<PageList<RoomTypeResponseModel>>(
+                        content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                
+                var responseFloor = await HttpClient.GetAsync($"Floor/get-all-floor?PageSize=10000");
+                var floors = new PageList<FloorResponseModel>();
+
+                if (responseFloor.IsSuccessStatusCode)
+                {
+                    var content = await responseFloor.Content.ReadAsStringAsync();
+                    floors = JsonSerializer.Deserialize<PageList<FloorResponseModel>>(
+                        content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                
+                var apiUrl = BaseApiUrl + $"Room/get-all-rooms?{queryParams.ToQueryString()}";
                 var response = await HttpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -39,13 +77,16 @@ namespace HotelManagement.Controllers.Webs
                     var content = await response.Content.ReadAsStringAsync();
                     var rooms = JsonSerializer.Deserialize<PageList<RoomResponseModel>>(content,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    var filters = GetRoomFilters(roomTypes, floors);
+
+                    ViewBag.Filters = filters;
 
                     return View(rooms ?? new PageList<RoomResponseModel>());
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    TempData["ErrorMessage"] = "Your session has expired. Please login again.";
-                    return RedirectToAction("Login", "AuthWeb");
+                    return HandleUnauthorized();
                 }
                 else
                 {
@@ -58,6 +99,94 @@ namespace HotelManagement.Controllers.Webs
                 TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
                 return View(new PageList<RoomResponseModel>());
             }
+        }
+        
+        private List<FilterConfig> GetRoomFilters(PageList<RoomTypeResponseModel> roomTypes,PageList<FloorResponseModel> floors)
+        {
+            return new List<FilterConfig>
+            {
+                new FilterConfig
+                {
+                    Name = "RoomTypeId",
+                    Label = "Room Type",
+                    Type = FilterType.Select,
+                    Options = roomTypes.Data
+                        ?.ToDictionary(rt => rt.Id.ToString(), rt => rt.Name) ?? new Dictionary<string, string>()
+                },
+                new FilterConfig
+                {
+                    Name = "FloorId",
+                    Label = "Floor",
+                    Type = FilterType.Select,
+                    Options = floors.Data
+                        ?.ToDictionary(rt => rt.Id.ToString(), rt => rt.FloorNumber) ?? new Dictionary<string, string>()
+                },
+                new FilterConfig
+                {
+                    Name = "Status",
+                    Label = "Status",
+                    Type = FilterType.Select,
+                    Options = new Dictionary<string, string>
+                    {
+                        { "0", "Available" },
+                        { "1", "Occupied" },
+                        { "2", "Cleaning" },
+                        { "3", "Maintenance" },
+                        { "4", "Reserved" },
+                        { "5", "OutOfOrder" }
+                    }
+                },
+                new FilterConfig
+                {
+                    Name = "SmokingAllowed",
+                    Label = "Smoking Allowed",
+                    Type = FilterType.Select,
+                    Options = new Dictionary<string, string>
+                    {
+                        { "true", "Allow" },
+                        { "false", "Not allow" },
+                    }
+                },
+                new FilterConfig
+                {
+                    Name = "SmokingAllowed",
+                    Label = "Smoking Allowed",
+                    Type = FilterType.Select,
+                    Options = new Dictionary<string, string>
+                    {
+                        { "true", "Allow" },
+                        { "false", "Not allow" },
+                    }
+                },
+                new FilterConfig
+                {
+                    Name = "PetFriendly",
+                    Label = "Pet Friendly",
+                    Type = FilterType.Select,
+                    Options = new Dictionary<string, string>
+                    {
+                        { "true", "Allow" },
+                        { "false", "Not allow" },
+                    }
+                },
+                new FilterConfig
+                {
+                    Name = "Accessible",
+                    Label = "Accessible",
+                    Type = FilterType.Select,
+                    Options = new Dictionary<string, string>
+                    {
+                        { "true", "Allow" },
+                        { "false", "Not allow" },
+                    }
+                },
+                new FilterConfig
+                {
+                    Name = "MinCapacity",
+                    Label = "Min Capacity",
+                    Type = FilterType.Text,
+                },
+            };
         }
         #endregion
 
@@ -98,8 +227,7 @@ namespace HotelManagement.Controllers.Webs
                     floors = JsonSerializer.Deserialize<PageList<FloorResponseModel>>(content,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PageList<FloorResponseModel>();
                 }
-
-
+                
                 ViewBag.RoomTypes = roomTypes.Data?.Select(r => new SelectListItem
                 {
                     Value = r.Id.ToString(),
@@ -108,12 +236,20 @@ namespace HotelManagement.Controllers.Webs
                 ViewBag.Floors = floors.Data?.Select(r => new SelectListItem
                 {
                     Value = r.Id.ToString(),
-                    Text = r.FloorName
+                    Text = r.FloorNumber
                 }).ToList();
 
                 ViewBag.Amenities = amenities.Data;
 
-                return View();
+                if (TempData["AddRoomData"] == null)
+                {
+                    return View();
+                }
+
+                var json = TempData["AddRoomData"] as string;
+                var model = JsonSerializer.Deserialize<AddRoomDto>(json);
+                
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -132,8 +268,12 @@ namespace HotelManagement.Controllers.Webs
 
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = "Invalid data.";
-                return await CreateRoom();
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                TempData["ValidationErrors"] = JsonSerializer.Serialize(errors);
+                return RedirectToAction("CreateRoom");
             }
 
             try
@@ -146,17 +286,30 @@ namespace HotelManagement.Controllers.Webs
                 {
                     TempData["SuccessMessage"] = "Room created successfully!";
                     return RedirectToAction("ListRoom");
+
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    TempData["ErrorMessage"] = "Your session has expired. Please login again.";
+                    return RedirectToAction("Login", "AuthWeb");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Failed to create room.";
-                    return await CreateRoom();
+                    var content = await response.Content.ReadAsStringAsync();
+                    var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(content, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                
+                    TempData["AddRoomData"] = JsonSerializer.Serialize(model);
+                    SetErrorMessage(errorObj?.Errors[0].Issue);
+                    
+                    return RedirectToAction("CreateRoom");
+
                 }
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
-                return await CreateRoom();
+                return RedirectToAction("CreateRoom");
             }
         }
         #endregion
@@ -170,6 +323,25 @@ namespace HotelManagement.Controllers.Webs
             try
             {
                 SetAuthorizationHeader();
+                
+                var roomTypeResponse = await HttpClient.GetAsync(BaseApiUrl + "RoomType/get-all-room-type");
+                
+                var roomTypes = new PageList<RoomTypeResponseModel>();
+                if (roomTypeResponse.IsSuccessStatusCode)
+                {
+                    var contentRoomType = await roomTypeResponse.Content.ReadAsStringAsync();
+                    roomTypes = JsonSerializer.Deserialize<PageList<RoomTypeResponseModel>>(contentRoomType,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PageList<RoomTypeResponseModel>();
+                }
+                
+                var amenityResponse = await HttpClient.GetAsync(BaseApiUrl + "Amenity/get-all-amenity");
+                var amenities = new PageList<AmenityResponseModel>();
+                if (amenityResponse.IsSuccessStatusCode)
+                {
+                    var contentAmenity = await amenityResponse.Content.ReadAsStringAsync();
+                    amenities = JsonSerializer.Deserialize<PageList<AmenityResponseModel>>(contentAmenity,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PageList<AmenityResponseModel>();
+                }
 
                 var response = await HttpClient.GetAsync($"{BaseApiUrl}Room/get-room/{id}");
 
@@ -193,6 +365,14 @@ namespace HotelManagement.Controllers.Webs
                     SetErrorMessage("Room not found.");
                     return RedirectToAction("ListRoom");
                 }
+                
+                ViewBag.RoomTypes = roomTypes.Data?.Select(r => new SelectListItem
+                {
+                    Value = r.Id.ToString(),
+                    Text = r.Name
+                }).ToList();
+
+                ViewBag.Amenities = amenities.Data;
 
                 return View(rooms);
             }
@@ -202,6 +382,178 @@ namespace HotelManagement.Controllers.Webs
                 return RedirectToAction("ListRoom");
             }
         }
+        #endregion
+        
+        #region DeleteRoom - POST
+        [HttpPost("delete-room/{id:guid}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRoom(Guid id,string? returnTo)
+        {
+            try
+            {
+                SetAuthorizationHeader();
+                var response = await HttpClient.DeleteAsync($"{BaseApiUrl}Room/{id}");
+                var result = await response.Content.ReadAsStringAsync();
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var message = JsonSerializer.Deserialize<MessageResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    SetSuccessMessage(message.Message);
+                    return RedirectToAction("ListRoom");
+                    
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return HandleUnauthorized();
+                }
+                else
+                {
+                    var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    SetErrorMessage(errorObj?.Message ??"Failed to delete room.");
+                    if (returnTo == "detail")
+                        return RedirectToAction("RoomDetail", new { id  });
+                    return RedirectToAction("ListRoom");
+                }
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessage($"An error occurred: {ex.Message}");
+                if (returnTo == "detail")
+                    return RedirectToAction("RoomDetail", new { id  });
+                return RedirectToAction("ListRoom");
+            }
+        }
+        #endregion
+        
+        #region EditRoom - POST
+        [HttpPost("edit-room/{id:guid}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditRoom(Guid id, UpdateRoomDto model, Guid FloorId)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                TempData["ValidationErrors"] = JsonSerializer.Serialize(errors);
+                return RedirectToAction("RoomDetail", new { id });
+            }
+
+            try
+            {
+                SetAuthorizationHeader();
+                
+                var response = await HttpClient.PutAsJsonAsync($"{BaseApiUrl}Room/{id}?floorId={FloorId}", model);
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var message = JsonSerializer.Deserialize<MessageResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    SetSuccessMessage(message.Message);
+                    return RedirectToAction("RoomDetail", new { id });
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return HandleUnauthorized();
+                }
+                else
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    SetErrorMessage(errorObj?.Errors?[0]?.Issue ?? "Failed to update room.");
+                    return RedirectToAction("RoomDetail", new { id });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEBUG] Update floor exception: {ex.Message}");
+                SetErrorMessage($"An error occurred: {ex.Message}");
+                return RedirectToAction("RoomDetail", new { id });
+            }
+        }
+        #endregion
+        
+        #region ChangeRoomStatus - POST
+
+        [HttpPost("change-room-status/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeRoomStatus(Guid id, ChangeRoomStatusDto model)
+        {
+            try
+            {
+                SetAuthorizationHeader();
+
+                var response =
+                    await HttpClient.PatchAsJsonAsync($"{BaseApiUrl}Room/{id}/status", model);
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var message = JsonSerializer.Deserialize<MessageResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    SetSuccessMessage(message.Message);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return HandleUnauthorized();
+                }
+                else
+                {
+                    var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(result, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    TempData["Error"] = errorObj?.Errors[0].Issue;
+                }
+                
+                return RedirectToAction("RoomDetail", new { id });
+               
+            }
+            catch (Exception ex)
+            {
+                SetErrorMessage($"An error occurred: {ex.Message}");
+                return RedirectToAction("RoomDetail", new { id });
+                
+            }
+        }
+        #endregion
+        
+        #region AddRoomAmenities - POST
+        [HttpPost("add-room-amenities/{id:guid}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRoomAmenities(Guid id, List<Guid> amenityIds)
+        {
+            var dto = new { amenityIds = amenityIds };
+    
+            SetAuthorizationHeader();
+            var response = await HttpClient.PutAsJsonAsync($"{BaseApiUrl}Room/{id}/amenities", dto);
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var message = JsonSerializer.Deserialize<MessageResponse>(result, 
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                SetSuccessMessage(message.Message);
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var errorObj = JsonSerializer.Deserialize<ApiErrorResponse>(content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                SetErrorMessage(errorObj?.Errors?[0]?.Issue ?? "Failed to update room.");
+            }
+
+            return RedirectToAction("RoomDetail", new { id });
+        }
+
         #endregion
         
         #region ListFloor
