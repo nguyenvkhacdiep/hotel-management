@@ -83,7 +83,8 @@ public class RoomResponseModel
     public string RoomNumber { get; set; } = null!;
     public string? RoomName { get; set; }
     public string RoomTypeName { get; set; } = null!;
-    public int FloorNumber { get; set; }
+    public string FloorNumber { get; set; }
+    public string FloorId { get; set; }
     public string? FloorName { get; set; }
     public int Capacity { get; set; }
     public RoomStatus Status { get; set; }
@@ -146,7 +147,6 @@ public class UpdateRoomDto
     public string RoomNumber { get; set; } = null!;
     public string? RoomName { get; set; }
     public Guid RoomTypeId { get; set; }
-    public Guid FloorId { get; set; }
     public string? Position { get; set; }
     public int Capacity { get; set; }
     public int NumberOfBeds { get; set; }

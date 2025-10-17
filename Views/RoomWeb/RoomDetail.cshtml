@@ -1,4 +1,5 @@
 @using HotelManagement.Models.Common
+@using HotelManagement.Services.Dto
 @model HotelManagement.Services.Dto.RoomDetailResponseModel
 
 @{
@@ -9,7 +10,6 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="mb-1">
@@ -22,7 +22,6 @@
                 </a>
             </div>
 
-            <!-- Alert Messages -->
             @if (TempData["SuccessMessage"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -58,9 +57,7 @@
             }
 
             <div class="row">
-                <!-- Left Column - Room Overview -->
                 <div class="col-lg-4 mb-4">
-                    <!-- Room Status Card -->
                     <div class="card shadow-sm border-0 text-center">
                         <div class="card-body py-5">
                             <div class="room-icon-large mb-4">
@@ -76,28 +73,26 @@
                                     : Model.BasePrice).ToString("N2")) <small class="text-muted">/night</small>
                             </h4>
                             
-                            <!-- Quick Actions -->
                             <div class="d-grid gap-2">
                                 <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal">
                                     <i class="fas fa-edit"></i> Edit Room
                                 </button>
                                 
-                                <form asp-action="ToggleRoomStatus" asp-route-id="@Model.Id" method="post" 
-                                      onsubmit="return confirm('Are you sure you want to change room status?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-@(GetStatusColor(Model.Status)) w-100">
-                                        <i class="fas fa-sync-alt"></i> Change Status
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#toggleStatusModal">
+                                    <i class="fas fa-sync-alt"></i> Change Status
+                                </button>
 
                                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                     <i class="fas fa-trash"></i> Delete Room
                                 </button>
+                                
+                                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#editAmenitiesModal">
+                                    <i class="fas fa-add"></i> Add Amenity
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Room Type Card -->
+                    
                     <div class="card shadow-sm border-0 mt-3">
                         <div class="card-header bg-light">
                             <h6 class="mb-0">
@@ -112,8 +107,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Floor Info Card -->
+                    
                     <div class="card shadow-sm border-0 mt-3">
                         <div class="card-header bg-light">
                             <h6 class="mb-0">
@@ -130,10 +124,8 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Right Column - Details -->
+                
                 <div class="col-lg-8">
-                    <!-- Main Details Card -->
                     <div class="card shadow-sm border-0 mb-3">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">
@@ -212,8 +204,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Amenities Card -->
+                    
                     <div class="card shadow-sm border-0 mb-3">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
@@ -246,8 +237,7 @@
                             }
                         </div>
                     </div>
-
-                    <!-- Statistics Cards -->
+                    
                     <div class="row">
                         <div class="col-md-4">
                             <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
@@ -289,11 +279,10 @@
     </div>
 </div>
 
-<!-- Edit Room Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <form asp-action="UpdateRoom" asp-route-id="@Model.Id" method="post">
+            <form asp-action="EditRoom" asp-route-id="@Model.Id" method="post">
                 @Html.AntiForgeryToken()
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="editModalLabel">
@@ -301,37 +290,76 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Room Number <span class="text-danger">*</span></label>
                             <input type="text" name="RoomNumber" class="form-control" value="@Model.RoomNumber" required>
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Price per Night <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" name="PricePerNight" class="form-control" value="@((Model.ActivePrices != null && Model.ActivePrices.Any()
-                                                                                                          ? Model.ActivePrices[0].PricePerNight
-                                                                                                          : Model.BasePrice).ToString("N2"))" step="0.01" required>
-                            </div>
+                            <label class="form-label">Room Name</label>
+                            <input type="text" name="RoomName" class="form-control" value="@Model.RoomName">
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Status <span class="text-danger">*</span></label>
-                            <select name="Status" class="form-select" required>
-                                <option value="0" selected="@(Model.Status == RoomStatus.Available)">Available</option>
-                                <option value="1" selected="@(Model.Status == RoomStatus.Occupied)">Occupied</option>
-                                <option value="2" selected="@(Model.Status == RoomStatus.Maintenance)">Maintenance</option>
-                                <option value="3" selected="@(Model.Status == RoomStatus.Cleaning)">Cleaning</option>
-                                <option value="4" selected="@(Model.Status == RoomStatus.Reserved)">Reserved</option>
+                            <label class="form-label">Room Type <span class="text-danger">*</span></label>
+                            <select name="RoomTypeId" class="form-select" required>
+                                <option value="">-- Select Room Type --</option>
+                                @foreach (var type in ViewBag.RoomTypes as List<SelectListItem>)
+                                {
+                                    <option value="@type.Value" selected="@(Model.RoomTypeName == type.Text)">
+                                        @type.Text
+                                    </option>
+                                }
                             </select>
                         </div>
+                        
+                        <input type="hidden" name="FloorId" value="@Model.FloorId" />
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Position</label>
+                            <input type="text" name="Position" class="form-control" value="@Model.Position">
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Capacity</label>
+                            <input type="number" name="Capacity" class="form-control" value="@Model.Capacity" min="1">
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Beds</label>
+                            <input type="number" name="NumberOfBeds" class="form-control" value="@Model.NumberOfBeds" min="1">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Bed Type</label>
+                            <input type="text" name="BedType" class="form-control" value="@Model.BedType">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="smokingAllowed" name="SmokingAllowed" value="true" @(Model.SmokingAllowed ? "checked" : "")>
+                            <label class="form-check-label" for="smokingAllowed">Smoking Allowed</label>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="petFriendly" name="PetFriendly" value="true" @(Model.PetFriendly ? "checked" : "")>
+                            <label class="form-check-label" for="petFriendly">Pet Friendly</label>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="accessible" name="Accessible" value="true" @(Model.Accessible ? "checked" : "")>
+                            <label class="form-check-label" for="accessible">Accessible</label>
+                        </div>
+                        
                         <div class="col-12 mb-3">
                             <label class="form-label">Notes</label>
-                            <textarea name="Description" class="form-control" rows="4">@Model.Notes</textarea>
+                            <textarea name="Notes" class="form-control" rows="3">@Model.Notes</textarea>
                         </div>
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
@@ -345,7 +373,47 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form asp-action="ChangeRoomStatus" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit"></i> Change Status Floor @Model.FloorNumber
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Room Type <span class="text-danger">*</span></label>
+                        <select name="NewStatus" class="form-select">
+                            @foreach (var status in Enum.GetValues(typeof(RoomStatus)))
+                            {
+                                <option value="@status" selected="@(Model.Status == (RoomStatus)status)">
+                                    @status
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea name="Reason" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sync-alt"></i> Update Status
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -382,6 +450,46 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editAmenitiesModal" tabindex="-1" aria-labelledby="editAmenitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form asp-action="AddRoomAmenities" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="editAmenitiesModalLabel">
+                        <i class="fas fa-concierge-bell"></i> Edit Amenities for Room @Model.RoomNumber
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @foreach (var amenity in ViewBag.Amenities as List<AmenityResponseModel>)
+                        {
+                            var isChecked = Model.Amenities.Contains(amenity.AmenityName);
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="AmenityIds" value="@amenity.Id" @(isChecked ? "checked" : "") />
+                                    <label class="form-check-label">@amenity.AmenityName</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 @functions {
     string GetStatusColor(RoomStatus status)

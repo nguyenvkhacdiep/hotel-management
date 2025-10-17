@@ -41,32 +41,37 @@ public class RoomController: ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<string>> EditRoom(
         Guid id,
+        [FromQuery] Guid floorId,
         [FromBody] UpdateRoomDto updateDto)
     {
-        var message = await _roomService.UpdateRoom(id, updateDto);
+        var message = await _roomService.UpdateRoom(id, floorId, updateDto);
         return Ok(new {message});
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<ActionResult<string>> DeleteRoom(Guid id)
     {
         var message = await _roomService.DeleteRoom(id);
         return Ok(new {message});
     }
 
-    [HttpPatch("{id}/status")]
+    [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult> ChangeRoomStatus(
         Guid id,
         [FromBody] ChangeRoomStatusDto statusDto)
     {
+        var username = User?.Identity?.Name 
+                       ?? User?.FindFirst("unique_name")?.Value 
+                       ?? "System";
+        statusDto.ChangedBy = username;
         var message = await _roomService.ChangeRoomStatus(id, statusDto);
         return Ok(new {message});
     }
 
-    [HttpPut("{id}/amenities")]
+    [HttpPut("{id:guid}/amenities")]
     public async Task<ActionResult> UpdateRoomAmenities(
         Guid id,
         [FromBody] UpdateRoomAmenitiesDto amenitiesDto)
@@ -90,7 +95,7 @@ public class RoomController: ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}/status-history")]
+    [HttpGet("{id:guid}/status-history")]
     public async Task<ActionResult<List<RoomStatusHistoryDto>>> GetRoomStatusHistory(Guid id)
     {
         var result = await _roomService.GetRoomStatusHistory(id);

@@ -8,7 +8,7 @@ public interface IRoomService
     Task<string> AddRoomAsync(AddRoomDto addRoomDto);
     Task<PageList<RoomResponseModel>> GetAllRooms(RoomRequestParameters parameters);
     Task<RoomDetailResponseModel> GetRoomById(Guid id);
-    Task<string> UpdateRoom(Guid id, UpdateRoomDto updateRoomDto);
+    Task<string> UpdateRoom(Guid id, Guid floorId, UpdateRoomDto updateRoomDto);
     Task<string> DeleteRoom(Guid id);
     Task<string> ChangeRoomStatus(Guid id, ChangeRoomStatusDto statusDto);
     Task<string> UpdateRoomAmenities(Guid id, UpdateRoomAmenitiesDto amenitiesDto);

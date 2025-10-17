@@ -91,8 +91,17 @@ namespace HotelManagement.Migrations
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("BookingId", "ServiceId");
 
@@ -345,9 +354,6 @@ namespace HotelManagement.Migrations
                     b.Property<Guid>("RoomTypeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoomTypeId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("SeasonName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -362,8 +368,6 @@ namespace HotelManagement.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("RoomTypeId");
-
-                    b.HasIndex("RoomTypeId1");
 
                     b.HasIndex("StartDate", "EndDate");
 
@@ -618,14 +622,10 @@ namespace HotelManagement.Migrations
             modelBuilder.Entity("HotelManagement.Models.RoomPrice", b =>
                 {
                     b.HasOne("HotelManagement.Models.RoomType", "RoomType")
-                        .WithMany()
-                        .HasForeignKey("RoomTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HotelManagement.Models.RoomType", null)
                         .WithMany("RoomPrices")
-                        .HasForeignKey("RoomTypeId1");
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("RoomType");
                 });

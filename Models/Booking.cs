@@ -1,3 +1,5 @@
+using HotelManagement.Models.Common;
+
 namespace HotelManagement.Models;
 
 public class Booking
@@ -19,13 +21,4 @@ public class Booking
     public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
-}
-
-public enum BookingStatus
-{
-    Pending = 0,
-    Confirmed = 1,
-    CheckedIn = 2,
-    CheckedOut = 3,
-    Canceled = 4
 }

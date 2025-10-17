@@ -174,6 +174,7 @@
 
     .button-group {
         display: flex;
+        justify-content: end;
         gap: 15px;
         margin-top: 30px;
         padding-top: 20px;
@@ -181,7 +182,6 @@
     }
 
     .btn-submit {
-        flex: 1;
         padding: 15px;
         background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
@@ -254,8 +254,16 @@
     <h1 class="page-title">Add New Room</h1>
 </div>
 
-<form id="createRoomForm" asp-action="CreateRoom" method="post">
+<form id="createRoomForm" asp-action="CreateRoom" method="post" novalidate>
     @Html.AntiForgeryToken()
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show col-lg-8" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
     <div class="row">
         <div class="col-lg-8">
@@ -275,7 +283,7 @@
                                 <i class="fas fa-door-open"></i>
                                 <input asp-for="RoomNumber" class="form-control" placeholder="Enter room number (e.g., 101, 205)" />
                             </div>
-                            <span asp-validation-for="RoomNumber" class="invalid-feedback"></span>
+                            <span id="room-number-error" class="invalid-feedback"></span>
                         </div>
                     </div>
 
@@ -299,10 +307,10 @@
                             <label class="form-label" asp-for="RoomTypeId">
                                 Room Type <span class="required">*</span>
                             </label>
-                            <select asp-for="RoomTypeId" asp-items="ViewBag.RoomTypes" class="form-select" id="roomTypeSelect">
+                            <select asp-for="RoomTypeId" asp-items="ViewBag.RoomTypes" class="form-select">
                                 <option value="">-- Select Room Type --</option>
                             </select>
-                            <span asp-validation-for="RoomTypeId" class="invalid-feedback"></span>
+                            <span id="room-type-error" class="invalid-feedback"></span>
                         </div>
                     </div>
 
@@ -311,15 +319,14 @@
                             <label class="form-label" asp-for="FloorId">
                                 Floor <span class="required">*</span>
                             </label>
-                            <select asp-for="FloorId" asp-items="ViewBag.Floors" class="form-select" id="floorSelect">
+                            <select asp-for="FloorId" asp-items="ViewBag.Floors" class="form-select">
                                 <option value="">-- Select Floor --</option>
                             </select>
-                            <span asp-validation-for="FloorId" class="invalid-feedback"></span>
+                            <span id="floor-error" class="invalid-feedback"></span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Position -->
+                
                 <div class="form-group">
                     <label class="form-label" asp-for="Position">
                         Location
@@ -348,7 +355,7 @@
                                 <i class="fas fa-users"></i>
                                 <input asp-for="Capacity" type="number" min="1" max="10" class="form-control" placeholder="Number of guests" />
                             </div>
-                            <span asp-validation-for="Capacity" class="invalid-feedback"></span>
+                            <span id="capacity-error" class="invalid-feedback"></span>
                         </div>
                     </div>
 
@@ -361,7 +368,7 @@
                                 <i class="fas fa-bed"></i>
                                 <input asp-for="NumberOfBeds" type="number" min="1" max="5" class="form-control" placeholder="Number of beds" />
                             </div>
-                            <span asp-validation-for="NumberOfBeds" class="invalid-feedback"></span>
+                            <span id="number-of-bed-error" class="invalid-feedback"></span>
                         </div>
                     </div>
 
@@ -378,6 +385,7 @@
                                 <option value="King">King Bed</option>
                                 <option value="Twin">Twin Bed</option>
                             </select>
+                            <span id="type-bed-error" class="invalid-feedback"></span>
                         </div>
                     </div>
                 </div>
@@ -390,21 +398,21 @@
                 </div>
 
                 <div class="checkbox-group">
-                    <div class="custom-checkbox" onclick="toggleCheckbox(this, 'SmokingAllowed')">
+                    <div class="custom-checkbox">
                         <input type="checkbox" asp-for="SmokingAllowed" id="SmokingAllowed" />
                         <label for="SmokingAllowed">
                             <i class="fas fa-smoking me-2"></i>Smoking Allowed
                         </label>
                     </div>
 
-                    <div class="custom-checkbox" onclick="toggleCheckbox(this, 'PetFriendly')">
+                    <div class="custom-checkbox">
                         <input type="checkbox" asp-for="PetFriendly" id="PetFriendly" />
                         <label for="PetFriendly">
                             <i class="fas fa-paw me-2"></i>Pet Friendly
                         </label>
                     </div>
 
-                    <div class="custom-checkbox" onclick="toggleCheckbox(this, 'Accessible')">
+                    <div class="custom-checkbox">
                         <input type="checkbox" asp-for="Accessible" id="Accessible" />
                         <label for="Accessible">
                             <i class="fas fa-wheelchair me-2"></i>Accessible Room
@@ -423,14 +431,14 @@
                     @if (amenities == null || !amenities.Any())
                     {
                         <div class="text-center" style="grid-column: 1 / -1; padding: 20px;">
-                            <i class="fas fa-spinner fa-spin me-2"></i>Loading amenities...
+                            No amenities...
                         </div>
                     }
                     else
                     {
                         foreach (var amenity in amenities)
                         {
-                            <div class="amenity-checkbox" onclick="toggleAmenity(this, '${amenity.id}')">
+                            <div class="amenity-checkbox">
                                 <input type="checkbox" name="AmenityIds" value="@amenity.Id" id="amenity_@amenity.Id" />
                                 <label for="amenity_@amenity.Id">@amenity.AmenityName</label>
                             </div>
@@ -449,59 +457,7 @@
                     <textarea asp-for="Notes" class="form-control" rows="4" placeholder="Additional notes about the room (optional)"></textarea>
                 </div>
             </div>
-        </div>
-
-        <div class="col-lg-4">
-            <!-- Preview Card -->
-            <div class="form-card sticky-top" style="top: 20px;">
-                <div class="section-header">
-                    <i class="fas fa-eye"></i>
-                    <h3>Preview</h3>
-                </div>
-
-                <div class="text-center mb-3">
-                    <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-bed" style="font-size: 64px; color: white; opacity: 0.5;"></i>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <h4 id="previewRoomNumber" style="font-size: 24px; font-weight: 700; color: #333;">---</h4>
-                    <p id="previewRoomName" class="text-muted" style="display: none;">---</p>
-                </div>
-
-                <div class="mb-3">
-                    <span id="previewRoomType" class="feature-badge">
-                        <i class="fas fa-layer-group"></i>
-                        Room type not selected
-                    </span>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="fas fa-building text-muted"></i>
-                        <span id="previewFloor">Floor not selected</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="fas fa-users text-muted"></i>
-                        <span id="previewCapacity">-- guests</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-bed text-muted"></i>
-                        <span id="previewBeds">-- beds</span>
-                    </div>
-                </div>
-
-                <div id="previewFeatures" style="display: none;">
-                    <div class="section-header" style="margin-bottom: 15px; padding-bottom: 10px;">
-                        <i class="fas fa-check-circle"></i>
-                        <h5 style="margin: 0; font-size: 14px;">Features</h5>
-                    </div>
-                    <div id="featuresList"></div>
-                </div>
-            </div>
-            
-            <div class="button-group" style="position: sticky; top: 620px;">
+            <div class="button-group">
                 <a href="@Url.Action("ListRoom", "RoomWeb")" class="btn-cancel">
                     <i class="fas fa-times me-2"></i>Cancel
                 </a>
@@ -518,81 +474,102 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
-            setupPreviewListeners();
+            const form = document.querySelector('form');
+            const roomNumberInput = document.querySelector('input[name="RoomNumber"]');
+            const roomNumberError = document.getElementById('room-number-error');
+            const roomTypeInput = document.querySelector('select[id="RoomTypeId"]');
+            const roomTypeError = document.getElementById('room-type-error');
+            const floorInput = document.querySelector('select[id="FloorId"]');
+            const floorError = document.getElementById('floor-error');
+            const capacityInput = document.querySelector('input[id="Capacity"]');
+            const capacityError = document.getElementById('capacity-error');
+            const numberBedsInput = document.querySelector('input[id="NumberOfBeds"]');
+            const numberBedsError = document.getElementById('number-of-bed-error');
+            const bedTypeInput = document.querySelector('select[id="BedType"]');
+            const bedTypeError = document.getElementById('type-bed-error');
+
+            roomNumberInput.addEventListener('input', function() {
+                roomNumberError.textContent = '';
+                roomNumberInput.classList.remove('is-invalid');
+            });
+
+            roomTypeInput.addEventListener('input', function() {
+                roomTypeError.textContent = '';
+                roomTypeInput.classList.remove('is-invalid');
+            });
+
+            floorInput.addEventListener('input', function() {
+                floorError.textContent = '';
+                floorInput.classList.remove('is-invalid');
+            });
+
+            capacityInput.addEventListener('input', function() {
+                capacityError.textContent = '';
+                capacityInput.classList.remove('is-invalid');
+            });
+
+            numberBedsInput.addEventListener('input', function() {
+                numberBedsError.textContent = '';
+                numberBedsInput.classList.remove('is-invalid');
+            });
+
+            bedTypeInput.addEventListener('input', function() {
+                bedTypeError.textContent = '';
+                bedTypeInput.classList.remove('is-invalid');
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let hasError = false;
+
+                if (!roomNumberInput.value.trim()) {
+                    roomNumberError.textContent = 'Please enter room number';
+                    roomNumberInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!roomTypeInput.value.trim()) {
+                    roomTypeError.textContent = 'Please select room type';
+                    roomTypeInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!floorInput.value.trim()) {
+                    floorError.textContent = 'Please select floor';
+                    floorInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!capacityInput.value.trim()) {
+                    capacityError.textContent = 'Please enter capacity';
+                    capacityInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!numberBedsInput.value.trim()) {
+                    numberBedsError.textContent = 'Please enter number beds';
+                    numberBedsInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!bedTypeInput.value.trim()) {
+                    bedTypeError.textContent = 'Please select bed type';
+                    bedTypeInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (!hasError) {
+                    form.submit();
+                }
+            });
         });
-        
-        function toggleAmenity(element, amenityId) {
-            const checkbox = element.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-            element.classList.toggle('selected', checkbox.checked);
-        }
-        
-        function toggleCheckbox(element, checkboxId) {
-            const checkbox = document.getElementById(checkboxId);
-            checkbox.checked = !checkbox.checked;
-            element.classList.toggle('checked', checkbox.checked);
-            updatePreview();
-        }
-        
-        function setupPreviewListeners() {
-            document.getElementById('RoomNumber').addEventListener('input', updatePreview);
-            document.getElementById('RoomName').addEventListener('input', updatePreview);
-            document.getElementById('roomTypeSelect').addEventListener('change', updatePreview);
-            document.getElementById('floorSelect').addEventListener('change', updatePreview);
-            document.getElementById('Capacity').addEventListener('input', updatePreview);
-            document.getElementById('NumberOfBeds').addEventListener('input', updatePreview);
-            document.getElementById('SmokingAllowed').addEventListener('change', updatePreview);
-            document.getElementById('PetFriendly').addEventListener('change', updatePreview);
-            document.getElementById('Accessible').addEventListener('change', updatePreview);
-        }
-        
-        function updatePreview() {
-            const roomNumber = document.getElementById('RoomNumber').value || '---';
-            document.getElementById('previewRoomNumber').textContent = 'Room ' + roomNumber;
 
-            const floors = @Html.Raw(Json.Serialize(ViewBag.Floors));
-            const roomTypes = @Html.Raw(Json.Serialize(ViewBag.RoomTypes));
-
-            const roomName = document.getElementById('RoomName').value;
-            const previewRoomName = document.getElementById('previewRoomName');
-            if (roomName) {
-                previewRoomName.textContent = roomName;
-                previewRoomName.style.display = 'block';
-            } else {
-                previewRoomName.style.display = 'none';
-            }
-
-            const roomTypeId = document.getElementById('roomTypeSelect').value;
-            const roomType = roomTypes.find(t => t.value === roomTypeId);
-            document.getElementById('previewRoomType').innerHTML = roomType
-                ? `<i class="fas fa-layer-group"></i>${roomType.text}`
-                : `<i class="fas fa-layer-group"></i>Room type not selected`;
-
-            const floorId = document.getElementById('floorSelect').value;
-            const floor = floors.find(f => f.value === floorId);
-            document.getElementById('previewFloor').textContent = floor
-                ? `Floor ${floor.text ? floor.text : ''}`
-                : 'Floor not selected';
-
-            const capacity = document.getElementById('Capacity').value || '--';
-            document.getElementById('previewCapacity').textContent = `${capacity} guests`;
-
-            const beds = document.getElementById('NumberOfBeds').value || '--';
-            document.getElementById('previewBeds').textContent = `${beds} beds`;
-
-            const features = [];
-            if (document.getElementById('SmokingAllowed').checked) features.push('<i class="fas fa-smoking me-2"></i>Smoking Allowed');
-            if (document.getElementById('PetFriendly').checked) features.push('<i class="fas fa-paw me-2"></i>Pet Friendly');
-            if (document.getElementById('Accessible').checked) features.push('<i class="fas fa-wheelchair me-2"></i>Accessible');
-
-            const previewFeatures = document.getElementById('previewFeatures');
-            const featuresList = document.getElementById('featuresList');
-            if (features.length > 0) {
-                previewFeatures.style.display = 'block';
-                featuresList.innerHTML = features.map(f => `<div class="mb-2">${f}</div>`).join('');
-            } else {
-                previewFeatures.style.display = 'none';
-            }
-        }
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
     </script>
 }
