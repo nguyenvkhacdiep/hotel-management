@@ -11,4 +11,6 @@ public class ServiceResponseModel
     public Guid Id { get; set; }
     public string Name { get; set; }
     public decimal Price { get; set; }
+    public List<BookingServiceResponseModel> BookingServices { get; set; } = new();
+
 }

@@ -77,7 +77,7 @@ public class ServiceService:IServiceService
 
     public async Task<ServiceResponseModel> GetServiceById(Guid id)
     {
-        var findService = await _dbcontext.Services.FirstOrDefaultAsync(a => a.Id == id);
+        var findService = await _dbcontext.Services.Include(s=> s.BookingServices).FirstOrDefaultAsync(a => a.Id == id);
 
         if (findService == null)
         {

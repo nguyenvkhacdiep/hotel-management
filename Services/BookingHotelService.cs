@@ -24,10 +24,9 @@ public class BookingHotelService: IBookingService
         _mapper = mapper;
         _roomPricesService = roomPricesService;
     }
-    
-    public async Task<string> AddBookingAsync(AddBookingDto addBookingDto)
+
+    public async Task<string> AddBookingAsync(AddBookingDto addBookingDto) 
     {
-       
         if (addBookingDto.CheckInDate >= addBookingDto.CheckOutDate)
         {
             var errors = new List<FieldError>
@@ -54,10 +53,22 @@ public class BookingHotelService: IBookingService
             throw new BadRequestException("INVALID_FIELD", errors);
         }
         
-        var room = await _dbcontext.Rooms.FindAsync(addBookingDto.RoomId);
-        if (room == null)
+        if (addBookingDto.RoomIds == null || !addBookingDto.RoomIds.Any())
         {
-            throw new NotFoundException("Room not found");
+            throw new BadRequestException("INVALID_FIELD", new List<FieldError>
+            {
+                new() { Field = "roomIds", Issue = "At least one room must be selected." }
+            });
+        }
+        
+        var rooms = await _dbcontext.Rooms
+            .Where(r => addBookingDto.RoomIds.Contains(r.Id))
+            .ToListAsync();
+
+        if (rooms.Count != addBookingDto.RoomIds.Count)
+        {
+            var missingRoomIds = addBookingDto.RoomIds.Except(rooms.Select(r => r.Id)).ToList();
+            throw new NotFoundException($"Rooms not found: {string.Join(", ", missingRoomIds)}");
         }
         
         Guid customerId;
@@ -67,7 +78,7 @@ public class BookingHotelService: IBookingService
             var existingCustomer = await _dbcontext.Customers.FindAsync(addBookingDto.CustomerId.Value);
             if (existingCustomer == null)
             {
-                return "Customer not found.";
+                throw new NotFoundException("Customer not found.");
             }
             customerId = addBookingDto.CustomerId.Value;
         }
@@ -100,41 +111,77 @@ public class BookingHotelService: IBookingService
         }
         else
         {
-            return "Please provide either CustomerId or CustomerInfo.";
+            throw new BadRequestException("INVALID_FIELD", new List<FieldError>
+            {
+                new() { Field = "customer", Issue = "Please provide either CustomerId or CustomerInfo." }
+            });
         }
         
-        var isAvailable = await IsRoomAvailableAsync(
-            addBookingDto.RoomId,
-            addBookingDto.CheckInDate,
-            addBookingDto.CheckOutDate
-        );
+        var createdBookings = new List<Booking>();
+        var unavailableRooms = new List<string>();
 
-        if (!isAvailable)
+        foreach (var roomId in addBookingDto.RoomIds)
         {
-            return "Room is not available for the selected dates.";
+            var room = rooms.First(r => r.Id == roomId);
+            
+            var isAvailable = await IsRoomAvailableAsync(
+                roomId,
+                addBookingDto.CheckInDate,
+                addBookingDto.CheckOutDate
+            );
+
+            if (!isAvailable)
+            {
+                unavailableRooms.Add(room.RoomNumber);
+                continue;
+            }
+            
+            var totalAmount = await CalculateTotalAmountAsync(
+                roomId,
+                addBookingDto.CheckInDate,
+                addBookingDto.CheckOutDate
+            );
+            
+            var booking = new Booking
+            {
+                Id = Guid.NewGuid(),
+                RoomId = roomId,
+                CustomerId = customerId,
+                CheckInDate = addBookingDto.CheckInDate,
+                CheckOutDate = addBookingDto.CheckOutDate,
+                TotalAmount = totalAmount,
+                Status = BookingStatus.Pending,
+                CreatedAt = DateTime.Now,
+            };
+
+            _dbcontext.Bookings.Add(booking);
+            createdBookings.Add(booking);
         }
         
-        var totalAmount = await CalculateTotalAmountAsync(
-            addBookingDto.RoomId,
-            addBookingDto.CheckInDate,
-            addBookingDto.CheckOutDate
-        );
-
-        var booking = new Booking
+        if (unavailableRooms.Any())
         {
-            Id = Guid.NewGuid(),
-            RoomId = addBookingDto.RoomId,
-            CustomerId = customerId,
-            CheckInDate = addBookingDto.CheckInDate,
-            CheckOutDate = addBookingDto.CheckOutDate,
-            TotalAmount = totalAmount,
-            Status = BookingStatus.Pending
-        };
-
-        _dbcontext.Bookings.Add(booking);
+            if (createdBookings.Count == 0)
+            {
+                throw new BadRequestException("INVALID_FIELD", new List<FieldError>
+                {
+                    new() { Field = "room", Issue = $"All selected rooms are not available for the selected dates: {string.Join(", ", unavailableRooms)}" }
+                });
+            }
+            else
+            {
+                await _dbcontext.SaveChangesAsync();
+                throw new BadRequestException("INVALID_FIELD", new List<FieldError>
+                {
+                    new() { Field = "room", Issue = $"Booking created for {createdBookings.Count} room(s). " +
+                                                        $"The following rooms were not available: {string.Join(", ", unavailableRooms)}" }
+                });
+            };
+        }
+        
+        
         await _dbcontext.SaveChangesAsync();
 
-        return "Booking created successfully.";
+        return "Booking has been created successfully.";
     }
     
     public async Task<PageList<BookingResponseModel>> GetAllBookings(BookingRequestParameters parameters)
@@ -207,6 +254,8 @@ public class BookingHotelService: IBookingService
     {
         var booking = await _dbcontext.Bookings
             .Include(b => b.Room)
+            .ThenInclude(r => r.RoomType)
+            .Include(b => b.Room)
             .ThenInclude(r => r.Floor)
             .Include(b => b.Customer)
             .Include(b => b.BookingServices)
@@ -267,8 +316,10 @@ public class BookingHotelService: IBookingService
                 updateBookingDto.CheckOutDate
             );
         }
-
-        _mapper.Map(updateBookingDto, booking);
+        
+        booking.UpdatedAt = DateTime.Now;
+        
+        _dbcontext.Bookings.Update(booking);
         await _dbcontext.SaveChangesAsync();
         
         return "Booking updated successfully.";
@@ -284,6 +335,7 @@ public class BookingHotelService: IBookingService
 
         _dbcontext.Bookings.Remove(booking);
         await _dbcontext.SaveChangesAsync();
+        
         return "Booking deleted successfully.";
     }
     
@@ -301,7 +353,11 @@ public class BookingHotelService: IBookingService
         }
 
         booking.Status = BookingStatus.Canceled;
+        booking.UpdatedAt = DateTime.Now;
+        
+        _dbcontext.Bookings.Update(booking);
         await _dbcontext.SaveChangesAsync();
+        
         return "Booking cancelled successfully.";
     }
     
@@ -319,6 +375,9 @@ public class BookingHotelService: IBookingService
         }
 
         booking.Status = BookingStatus.Confirmed;
+        booking.UpdatedAt = DateTime.Now;
+        
+        _dbcontext.Bookings.Update(booking);
         await _dbcontext.SaveChangesAsync();
         return "Booking confirmed successfully.";
     }
@@ -342,6 +401,9 @@ public class BookingHotelService: IBookingService
         }
 
         booking.Status = BookingStatus.CheckedIn;
+        booking.UpdatedAt = DateTime.Now;
+        
+        _dbcontext.Bookings.Update(booking);
         await _dbcontext.SaveChangesAsync();
         return "Checked in successfully.";
     }
@@ -361,6 +423,9 @@ public class BookingHotelService: IBookingService
         }
 
         booking.Status = BookingStatus.CheckedOut;
+        booking.UpdatedAt = DateTime.Now;
+        
+        _dbcontext.Bookings.Update(booking);
         await _dbcontext.SaveChangesAsync();
         return "Checked out successfully.";
     }

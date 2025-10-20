@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotelManagement.Extensions;
-using HotelManagement.Models;
 using HotelManagement.Services.Common;
 using HotelManagement.Services.Dto;
 using Microsoft.AspNetCore.Authorization;

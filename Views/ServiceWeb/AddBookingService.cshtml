@@ -1,0 +1,256 @@
+@using HotelManagement.Services.Common
+@using HotelManagement.Services.Dto
+@model HotelManagement.Services.Dto.AddBookingServiceDto
+
+@{
+    ViewData["Title"] = "Add Service to Booking";
+    var services = ViewBag.Services as PageList<ServiceResponseModel>;
+    var booking = ViewBag.BookingId as string;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Add Service to Booking</h2>
+                    <p class="text-muted mb-0">Add additional services to enhance the guest experience</p>
+                </div>
+                <a href="@Url.Action("BookingDetail", "BookingWeb", new { id = booking })" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-cart-plus me-2"></i>Select Service</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AddOrderService" method="post" id="addServiceForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="BookingId" />
+                        
+                        <div class="mb-4">
+                            <label asp-for="ServiceId" class="form-label">
+                                Service <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="ServiceId" class="form-select form-select-lg" id="serviceSelect" required>
+                                <option value="">-- Select a Service --</option>
+                                @if (services != null)
+                                {
+                                    foreach (var service in services.Data)
+                                    {
+                                        <option value="@service.Id" 
+                                                data-price="@service.Price"
+                                                data-name="@service.Name">
+                                            @service.Name - $@service.Price.ToString("N2")
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ServiceId" class="text-danger"></span>
+                        </div>
+                        
+                        <div id="serviceDetails" class="alert alert-info d-none mb-4">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Service Details</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted">Name:</small>
+                                    <div id="serviceName" class="fw-bold"></div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted">Unit Price:</small>
+                                    <div id="servicePrice" class="fw-bold text-success"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Quantity" class="form-label">
+                                Quantity <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <button type="button" class="btn btn-outline-secondary" id="decreaseQty">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <input asp-for="Quantity" 
+                                       type="number" 
+                                       class="form-control text-center" 
+                                       min="1" 
+                                       max="100" 
+                                       value="1" 
+                                       id="quantityInput"
+                                       required />
+                                <button type="button" class="btn btn-outline-secondary" id="increaseQty">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                            <small class="form-text text-muted">Enter the number of units required</small>
+                        </div>
+                        
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Total Amount</h6>
+                                        <small class="text-muted">Unit Price × Quantity</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h3 class="mb-0 text-success" id="totalAmount">$0.00</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle me-2"></i>Add Service
+                            </button>
+                            <a href="@Url.Action("BookingDetail", "BookingWeb", new { id = booking })" 
+                               class="btn btn-outline-secondary btn-lg">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            @if (services != null && services.Data.Any())
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Available Services</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Service Name</th>
+                                        <th>Price</th>
+                                       
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var service in services.Data)
+                                    {
+                                        <tr>
+                                            <td><strong>@service.Name</strong></td>
+                                            <td class="text-success fw-bold">$@service.Price.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const serviceSelect = document.getElementById('serviceSelect');
+            const quantityInput = document.getElementById('quantityInput');
+            const decreaseBtn = document.getElementById('decreaseQty');
+            const increaseBtn = document.getElementById('increaseQty');
+            const totalAmountEl = document.getElementById('totalAmount');
+            const serviceDetailsCard = document.getElementById('serviceDetails');
+            const serviceNameEl = document.getElementById('serviceName');
+            const servicePriceEl = document.getElementById('servicePrice');
+            
+            let currentPrice = 0;
+
+          
+            serviceSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                
+                if (this.value) {
+                    currentPrice = parseFloat(selectedOption.dataset.price) || 0;
+                    const name = selectedOption.dataset.name || 'N/A';
+                    
+                    serviceDetailsCard.classList.remove('d-none');
+                    serviceNameEl.textContent = name;
+                    servicePriceEl.textContent = '$' + currentPrice.toFixed(2);
+                   
+                    calculateTotal();
+                } else {
+                    serviceDetailsCard.classList.add('d-none');
+                    currentPrice = 0;
+                    totalAmountEl.textContent = '$0.00';
+                }
+            });
+            
+            quantityInput.addEventListener('input', calculateTotal);
+            
+            decreaseBtn.addEventListener('click', function() {
+                let qty = parseInt(quantityInput.value) || 1;
+                if (qty > 1) {
+                    quantityInput.value = qty - 1;
+                    calculateTotal();
+                }
+            });
+
+            increaseBtn.addEventListener('click', function() {
+                let qty = parseInt(quantityInput.value) || 1;
+                if (qty < 100) {
+                    quantityInput.value = qty + 1;
+                    calculateTotal();
+                }
+            });
+            
+            function calculateTotal() {
+                const quantity = parseInt(quantityInput.value) || 1;
+                const total = currentPrice * quantity;
+                totalAmountEl.textContent = '$' + total.toFixed(2);
+            }
+            
+            document.getElementById('addServiceForm').addEventListener('submit', function(e) {
+                if (!serviceSelect.value) {
+                    e.preventDefault();
+                    alert('Please select a service');
+                    serviceSelect.focus();
+                    return false;
+                }
+                
+                const qty = parseInt(quantityInput.value);
+                if (!qty || qty < 1) {
+                    e.preventDefault();
+                    alert('Please enter a valid quantity (minimum 1)');
+                    quantityInput.focus();
+                    return false;
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .form-select-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1.1rem;
+    }
+    
+    #quantityInput {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .input-group-lg .btn {
+        min-width: 50px;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+        cursor: pointer;
+    }
+    
+    .card-header h5 {
+        font-weight: 600;
+    }
+</style>

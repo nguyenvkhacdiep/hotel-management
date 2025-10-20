@@ -1,0 +1,511 @@
+@model HotelManagement.Services.Dto.AddBookingWebDto
+
+@{
+ViewData["Title"] = "Booking";
+var currentStep = ViewBag.CurrentStep ?? 1;
+}
+
+<style>
+    .booking-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+
+    .content-card h5 {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .option-selector {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .option-card {
+        flex: 1;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .option-card:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9ff;
+    }
+
+    .option-card.active {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+
+    .option-card .radio-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 24px;
+        height: 24px;
+        border: 2px solid #dee2e6;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .option-card.active .radio-icon {
+        border-color: #0d6efd;
+        background-color: #0d6efd;
+    }
+
+    .option-card.active .radio-icon::after {
+        content: '✓';
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .customer-info-preview {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 4px;
+    }
+
+    .search-no-results {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+    }
+    
+    .step-navigation {
+        display: flex;
+        justify-content:end;
+        margin-top: 30px;
+    }
+</style>
+
+<div class="booking-container">
+    <form id="bookingForm" method="post" asp-action="AddBooking">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        <div class="content-card">
+            <h5><i class="bi bi-calendar-check text-primary"></i> Choose Date</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Check in <span class="text-danger">*</span></label>
+                    <input type="date"
+                           class="form-control"
+                           asp-for="CheckInDate"
+                           required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Check out <span class="text-danger">*</span></label>
+                    <input type="date"
+                           class="form-control"
+                           asp-for="CheckOutDate"
+                           required>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h5><i class="bi bi-person-fill text-primary"></i> Customer Information</h5>
+
+            <div class="option-selector">
+                <div class="option-card active" data-option="existing">
+                    <div class="radio-icon"></div>
+                    <input type="radio" name="CustomerOption" value="existing" checked hidden>
+                    <div style="padding-right: 30px;">
+                        <div style="font-weight: 600; font-size: 18px; margin-bottom: 5px;">
+                            <i class="bi bi-person-check"></i> Existing Customer
+                        </div>
+                        <div style="font-size: 14px; color: #6c757d;">
+                            Find from customer database
+                        </div>
+                    </div>
+                </div>
+                <div class="option-card" data-option="new">
+                    <div class="radio-icon"></div>
+                    <input type="radio" name="CustomerOption" value="new" hidden>
+                    <div style="padding-right: 30px;">
+                        <div style="font-weight: 600; font-size: 18px; margin-bottom: 5px;">
+                            <i class="bi bi-person-plus"></i> New Customer
+                        </div>
+                        <div style="font-size: 14px; color: #6c757d;">
+                            Register new customer
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="existingCustomerForm">
+                <div class="mb-3">
+                    <label class="form-label">Search Customer <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text"
+                               class="form-control"
+                               id="customerPhoneSearch"
+                               placeholder="Enter phone number (minimum 10 digits)"
+                               autocomplete="off">
+                        <button class="btn btn-outline-secondary"
+                                type="button"
+                                id="clearSearchBtn"
+                                style="display: none;">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="search-no-results" id="searchNoResults" style="display: none;">
+                        <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                        <p class="mb-0 mt-2">No customer found with this phone number</p>
+                    </div>
+                </div>
+
+                <input type="hidden" name="CustomerId" id="selectedCustomerId">
+                <input type="hidden" name="RoomIdsString" id="selectedRoomsJson">
+
+                <div id="selectedCustomerInfo" class="customer-info-preview" style="display: none;">
+                    <h6><i class="bi bi-info-circle"></i> Selected Customer</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Full Name:</strong> <span id="selectedName"></span></p>
+                            <p class="mb-1"><strong>Email:</strong> <span id="selectedEmail"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Phone:</strong> <span id="selectedPhone"></span></p>
+                            <p class="mb-1"><strong>ID Card:</strong> <span id="selectedIDCard"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="newCustomerForm" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text"
+                               class="form-control"
+                               name="CustomerInfo.FullName"
+                               id="fullName"
+                               placeholder="Enter full name"
+                               disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email"
+                                   class="form-control"
+                                   name="CustomerInfo.Email"
+                                   id="email"
+                                   placeholder="example@email.com"
+                                   disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Phone <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input type="tel"
+                                   class="form-control"
+                                   name="CustomerInfo.Phone"
+                                   id="phone"
+                                   placeholder="0123456789"
+                                   disabled>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ID Card</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                            <input type="text"
+                                   class="form-control"
+                                   name="CustomerInfo.IDCard"
+                                   id="idCard"
+                                   placeholder="001234567890"
+                                   disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="step-navigation">
+            <button type="submit"
+                    class="btn btn-success"
+                    id="submitBtn">
+                Complete Booking
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    const CONFIG = {
+        MIN_PHONE_LENGTH: 10,
+        SEARCH_DEBOUNCE: 500,
+        TOTAL_STEPS: 2
+    };
+    
+    let searchTimeout = null;
+    let optionCustomer;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeForm();
+        setupEventListeners();
+
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let hasError = false;
+            hasError = !validateDateStep();
+            hasError = !validateCustomerStep();
+
+            console.log(hasError);
+
+            if (!hasError) {
+                form.submit();
+            }
+        });
+    });
+
+    function initializeForm() {
+        setMinDate();
+        loadSavedRooms();
+    }
+
+    function setupEventListeners() {
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const option = this.getAttribute('data-option');
+                optionCustomer = selectCustomerOption(option);
+            });
+        });
+        
+        document.getElementById('customerPhoneSearch').addEventListener('input', handleSearchInput);
+        document.getElementById('clearSearchBtn').addEventListener('click', clearSearch);
+        
+        document.getElementById('CheckInDate').addEventListener('change', handleCheckInChange);
+    }
+    
+    function setMinDate() {
+        const today = new Date().toISOString().split('T')[0];
+        const checkInInput = document.getElementById('CheckInDate');
+        const checkOutInput = document.getElementById('CheckInDate');
+
+        checkInInput.setAttribute('min', today);
+        checkOutInput.setAttribute('min', today);
+    }
+
+    function handleCheckInChange() {
+        const checkInDate = this.value;
+        const checkOutInput = document.getElementById('CheckInDate');
+
+        checkOutInput.setAttribute('min', checkInDate);
+        
+        if (checkOutInput.value && new Date(checkOutInput.value) <= new Date(checkInDate)) {
+            checkOutInput.value = '';
+        }
+    }
+    
+    function validateDateStep() {
+        const checkIn = document.getElementById('CheckInDate').value;
+        const checkOut = document.getElementById('CheckOutDate').value;
+
+        if (!checkIn || !checkOut) {
+            showAlert('Please select check-in and check-out dates');
+            return false;
+        }
+
+        if (new Date(checkIn) >= new Date(checkOut)) {
+            showAlert('Check-out date must be after check-in date');
+            return false;
+        }
+
+        return true;
+    }
+
+    function validateCustomerStep() {
+        const customerOption = document.querySelector('input[name="CustomerOption"]:checked').value;
+
+        if (customerOption === 'existing') {
+            const customerId = document.getElementById('selectedCustomerId').value;
+            if (!customerId) {
+                showAlert('Please search and select a customer');
+                return false;
+            }
+        } else {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!fullName || !phone) {
+                showAlert('Please fill in all required fields');
+                return false;
+            }
+
+            if (email && !validateEmail(email)) {
+                showAlert('Please enter a valid email address');
+                return false;
+            }
+
+            if (!validatePhone(phone)) {
+                showAlert('Please enter a valid phone number');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function validateEmail(email) {
+        return /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email);
+    }
+
+    function validatePhone(phone) {
+        return /^[0-9]{10,11}$/.test(phone);
+    }
+
+    function showAlert(message) {
+        alert(message);
+    }
+    
+    function selectCustomerOption(option) {
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.classList.toggle('active', card.getAttribute('data-option') === option);
+        });
+        
+        const radio = document.querySelector(`.option-card[data-option="${option}"] input[type="radio"]`);
+        if (radio) radio.checked = true;
+        
+        const existingForm = document.getElementById('existingCustomerForm');
+        const newForm = document.getElementById('newCustomerForm');
+        const newFormInputs = newForm.querySelectorAll('input');
+
+        if (option === 'existing') {
+            existingForm.style.display = 'block';
+            newForm.style.display = 'none';
+            newFormInputs.forEach(input => input.disabled = true);
+        } else {
+            existingForm.style.display = 'none';
+            newForm.style.display = 'block';
+            document.getElementById('selectedCustomerId').value = null;
+            newFormInputs.forEach(input => input.disabled = false);
+        }
+        return option;
+    }
+    
+    function handleSearchInput() {
+        const searchTerm = this.value.trim();
+        const clearBtn = document.getElementById('clearSearchBtn');
+
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+        
+        clearTimeout(searchTimeout);
+        
+        hideSearchResults();
+        
+        if (searchTerm.length < CONFIG.MIN_PHONE_LENGTH) {
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchCustomer(searchTerm);
+        }, CONFIG.SEARCH_DEBOUNCE);
+    }
+
+    async function searchCustomer(phone) {
+        try {
+            const response = await fetch(`/booking/search-customer?phone=${encodeURIComponent(phone)}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+
+            const customer = await response.json();
+
+            if (customer) {
+                displayCustomer(customer);
+            } else {
+                showNoResults();
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            showNoResults();
+        }
+    }
+
+    function displayCustomer(customer) {
+        document.getElementById('selectedCustomerId').value = customer.id;
+        document.getElementById('selectedName').textContent = customer.fullName;
+        document.getElementById('selectedEmail').textContent = customer.email;
+        document.getElementById('selectedPhone').textContent = customer.phone;
+        document.getElementById('selectedIDCard').textContent = customer.idCard || 'N/A';
+        document.getElementById('selectedCustomerInfo').style.display = 'block';
+        document.getElementById('searchNoResults').style.display = 'none';
+    }
+
+    function showNoResults() {
+        document.getElementById('searchNoResults').style.display = 'block';
+        document.getElementById('selectedCustomerInfo').style.display = 'none';
+        document.getElementById('selectedCustomerId').value = '';
+    }
+
+    function hideSearchResults() {
+        document.getElementById('searchNoResults').style.display = 'none';
+        document.getElementById('selectedCustomerInfo').style.display = 'none';
+    }
+
+    function clearSearch() {
+        document.getElementById('customerPhoneSearch').value = '';
+        document.getElementById('clearSearchBtn').style.display = 'none';
+        hideSearchResults();
+        document.getElementById('selectedCustomerId').value = '';
+    }
+    
+    function loadSavedRooms() {
+        const savedRooms = sessionStorage.getItem('selectedRooms');
+        const roomsInput = document.getElementById('selectedRoomsJson');
+        if (roomsInput) {
+            roomsInput.value = savedRooms || '[]';
+        }
+    }
+</script>
+}

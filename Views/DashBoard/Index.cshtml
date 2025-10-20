@@ -249,19 +249,19 @@ ViewData["Title"] = "Dashboard";
         <h3 class="card-title mb-3">Thao tác nhanh</h3>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <button class="quick-action-btn" onclick="location.href='@Url.Action("Create", "Booking")'">
+        <button class="quick-action-btn" onclick="location.href='@Url.Action("Create", "BookingWeb")'">
             <i class="fas fa-plus-circle"></i>
             <div>Đặt phòng mới</div>
         </button>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <button class="quick-action-btn" onclick="location.href='@Url.Action("CheckIn", "Booking")'">
+        <button class="quick-action-btn" onclick="location.href='@Url.Action("CheckIn", "BookingWeb")'">
             <i class="fas fa-sign-in-alt"></i>
             <div>Nhận phòng</div>
         </button>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <button class="quick-action-btn" onclick="location.href='@Url.Action("CheckOut", "Booking")'">
+        <button class="quick-action-btn" onclick="location.href='@Url.Action("CheckOut", "BookingWeb")'">
             <i class="fas fa-sign-out-alt"></i>
             <div>Trả phòng</div>
         </button>
@@ -280,7 +280,7 @@ ViewData["Title"] = "Dashboard";
         <div class="table-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="card-title mb-0">Đặt phòng gần đây</h3>
-                <a href="@Url.Action("Index", "Booking")" class="btn btn-sm btn-outline-primary">
+                <a href="@Url.Action("Index", "BookingWeb")" class="btn btn-sm btn-outline-primary">
                     Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
                 </a>
             </div>

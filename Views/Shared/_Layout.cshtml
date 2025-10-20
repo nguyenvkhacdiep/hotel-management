@@ -221,39 +221,6 @@
             background: #f0f0f0;
         }
 
-        .topbar-search {
-            flex: 1;
-            max-width: 500px;
-            margin: 0 30px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 15px 10px 40px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-wrapper {
-            position: relative;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-        }
-
         .topbar-actions {
             display: flex;
             align-items: center;
@@ -335,34 +302,16 @@
             font-size: 12px;
             color: #999;
         }
-
-        /* Content Area */
+        
         .content-area {
             padding: 30px;
-        }
-
-        .page-header {
-            margin-bottom: 30px;
-        }
-
-        .page-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .page-breadcrumb {
-            font-size: 14px;
-            color: #999;
         }
 
         .page-breadcrumb a {
             color: #667eea;
             text-decoration: none;
         }
-
-        /* Responsive */
+        
         @@media (max-width: 768px) {
         .sidebar {
             transform: translateX(-100%);
@@ -429,22 +378,19 @@
             <span>BOOKING</span>
         </div>
         <div class="menu-item">
-            <a href="@Url.Action("Index", "Booking")" class="menu-link">
+            <a href="@Url.Action("ListRoomAvailable", "BookingWeb")" class="menu-link">
+                <i class="fas fa-plus-square"></i>
+                <span>Add Booking</span>
+            </a>
+            <a href="@Url.Action("ListBooking", "BookingWeb")" class="menu-link">
                 <i class="fas fa-calendar-check"></i>
                 <span>Booking</span>
-                <span class="menu-badge">12</span>
             </a>
         </div>
         <div class="menu-item">
-            <a href="@Url.Action("Index", "CheckIn")" class="menu-link">
+            <a href="@Url.Action("ListInvoice", "BookingWeb")" class="menu-link">
                 <i class="fas fa-sign-in-alt"></i>
-                <span>Check In</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <a href="@Url.Action("Index", "CheckOut")" class="menu-link">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Check Out</span>
+                <span>List invoice</span>
             </a>
         </div>
 
@@ -558,15 +504,23 @@
             <span>SERVICES</span>
         </div>
         <div class="menu-item">
-            <a href="@Url.Action("Index", "Service")" class="menu-link">
+            <a href="@Url.Action("ListService", "ServiceWeb")" class="menu-link">
                 <i class="fas fa-concierge-bell"></i>
                 <span>Services</span>
             </a>
+            <a href="@Url.Action("AddService", "ServiceWeb")" class="menu-link">
+                <i class="fas fa-plus"></i>
+                <span>Add Service</span>
+            </a>
         </div>
         <div class="menu-item">
-            <a href="@Url.Action("Index", "ServiceOrder")" class="menu-link">
+            <a href="@Url.Action("ListBookingService", "ServiceWeb")" class="menu-link">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Service Orders</span>
+            </a>
+            <a href="@Url.Action("AddBookingService", "ServiceWeb")" class="menu-link">
+                <i class="fas fa-calendar-check"></i>
+                <span>Booking Service</span>
             </a>
         </div>
 

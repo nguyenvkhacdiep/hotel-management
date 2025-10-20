@@ -1,73 +1,81 @@
 @using HotelManagement.Models.Common
-@model (HotelManagement.Models.Common.QueryParameters QueryParams, List<HotelManagement.Models.Common.FilterConfig> Filters)
+@model (HotelManagement.Models.Common.QueryParameters QueryParams, List<HotelManagement.Models.Common.FilterConfig>? Filters,bool NoSearch)
 
 <div class="card mb-4">
     <div class="card-body">
         <form method="get" id="filterForm">
-            <div class="filters-grid">
-                <div class="filter-item">
-                    <label class="form-label">
-                        <i class="bi bi-search"></i> Search
-                    </label>
-                    <input type="text" name="SearchKey" class="form-control"
-                           placeholder="@ViewData["SearchPlaceholder"]"
-                           value="@Model.QueryParams.SearchKey" />
-                </div>
-                
-                @foreach (var filter in Model.Filters)
+            <div class="filters-grid @(Model.Filters == null || !Model.Filters.Any() ? "no-filters" : "")">
+                @if (Model.NoSearch)
                 {
-                    <div class="filter-item">
+                    <div class="filter-item @(Model.Filters == null || !Model.Filters.Any() ? "search-no-filters" : "")">
                         <label class="form-label">
-                            <i class="bi bi-funnel"></i> @filter.Label
+                            <i class="bi bi-search"></i> Search
                         </label>
-
-                        @switch (filter.Type)
-                        {
-                            case FilterType.Select:
-                                <select name="@filter.Name" class="form-select">
-                                    <option value="">All @filter.Label</option>
-                                    @if (filter.Options != null)
-                                    {
-                                        @foreach (var option in filter.Options)
-                                        {
-                                            var isSelected = Model.QueryParams.GetFilter(filter.Name) == option.Key;
-                                            <option value="@option.Key" selected="@isSelected">
-                                                @option.Value
-                                            </option>
-                                        }
-                                    }
-                                </select>
-                                break;
-
-                            case FilterType.Text:
-                                <input type="text" name="@filter.Name" class="form-control"
-                                       placeholder="@filter.Placeholder"
-                                       value="@Model.QueryParams.GetFilter(filter.Name)" />
-                                break;
-
-                            case FilterType.Date:
-                                <input type="date" name="@filter.Name" class="form-control"
-                                       value="@Model.QueryParams.GetFilter(filter.Name)" />
-                                break;
-
-                            case FilterType.Number:
-                                <input type="number" name="@filter.Name" class="form-control"
-                                       placeholder="@filter.Placeholder"
-                                       value="@Model.QueryParams.GetFilter(filter.Name)" />
-                                break;
-                        }
+                        <input type="text" name="SearchKey" class="form-control"
+                               placeholder="@ViewData["SearchPlaceholder"]"
+                               value="@Model.QueryParams.SearchKey" />
                     </div>
+                }
+                
+                @if (Model.Filters != null && Model.Filters.Any())
+                {
+                    @foreach (var filter in Model.Filters)
+                    {
+                        <div class="filter-item">
+                            <label class="form-label">
+                                <i class="bi bi-funnel"></i> @filter.Label
+                            </label>
+
+                            @switch (filter.Type)
+                            {
+                                case FilterType.Select:
+                                    <select name="@filter.Name" class="form-select">
+                                        <option value="">All @filter.Label</option>
+                                        @if (filter.Options != null)
+                                        {
+                                            @foreach (var option in filter.Options)
+                                            {
+                                                var isSelected = Model.QueryParams.GetFilter(filter.Name) == option.Key;
+                                                <option value="@option.Key" selected="@isSelected">
+                                                    @option.Value
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    break;
+
+                                case FilterType.Text:
+                                    <input type="text" name="@filter.Name" class="form-control"
+                                           placeholder="@filter.Placeholder"
+                                           value="@Model.QueryParams.GetFilter(filter.Name)"/>
+                                    break;
+
+                                case FilterType.Date:
+                                    <input type="date" name="@filter.Name" class="form-control"
+                                           value="@Model.QueryParams.GetFilter(filter.Name)"/>
+                                    break;
+
+                                case FilterType.Number:
+                                    <input type="number" name="@filter.Name" class="form-control"
+                                           placeholder="@filter.Placeholder"
+                                           value="@Model.QueryParams.GetFilter(filter.Name)"/>
+                                    break;
+                            }
+                        </div>
+                    }
                 }
                 
                 <div class="filter-actions">
                     <label class="form-label d-block">&nbsp;</label>
-                    <button type="button" class="btn btn-primary w-100 mb-1" onclick="submitFilterForm()">
-                        <i class="bi bi-search"></i> Filter
-                    </button>
-                    <a href="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString())"
-                       class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-x-circle"></i> Clear
-                    </a>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-primary w-100" onclick="submitFilterForm()">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString())"
+                           class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
                 </div>
             </div>
         </form>
@@ -123,8 +131,6 @@
             });
         });
     }
-
-  
 </script>
 
 <style>
@@ -135,10 +141,41 @@
         margin-bottom: 1rem;
     }
     
+    .filters-grid.no-filters {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .filters-grid.no-filters .filter-actions {
+        flex-shrink: 0;
+        width: 200px;
+    }
+
+    .filters-grid.no-filters .filter-actions label {
+        display: none;
+    }
+    
     @@media (max-width: 768px) {
         .filters-grid {
             grid-template-columns: 1fr;
             gap: 0.75rem;
+        }
+        
+        .filters-grid.no-filters {
+            flex-direction: column;
+        }
+
+        .filters-grid.no-filters .filter-item {
+            width: 100%;
+        }
+
+        .filters-grid.no-filters .filter-actions {
+            width: 100%;
+        }
+
+        .filters-grid.no-filters .filter-actions label {
+            display: block;
         }
         
         .filter-item {
@@ -175,32 +212,6 @@
         }
     }
 
-    .filter-active {
-        border-color: #0d6efd !important;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .btn-loading {
-        position: relative;
-        pointer-events: none;
-        opacity: 0.7;
-    }
-
-    .btn-loading::after {
-        content: "";
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        top: 50%;
-        left: 50%;
-        margin-left: -8px;
-        margin-top: -8px;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        border-top-color: transparent;
-        animation: spinner 0.6s linear infinite;
-    }
-
     @@keyframes spinner {
         to { transform: rotate(360deg); }
     }
@@ -210,5 +221,15 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-label i {
+        margin-right: 0.25rem;
+    }
+    
+    .filter-item.search-no-filters{
+        width: 30% !important;
     }
 </style>
