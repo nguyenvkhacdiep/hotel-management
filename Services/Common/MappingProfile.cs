@@ -37,6 +37,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.NewStatus, opt => opt.MapFrom(src => src.NewStatus.ToString()));
         CreateMap<RoomPrice, RoomPriceResponseModel>();
         CreateMap<Booking, BookingResponseModel>();
-        CreateMap<BookingHotelService, BookingServiceResponseModel>();
+        CreateMap<BookingService, BookingServiceResponseModel>();
+        CreateMap<Customer, CustomerResponseModel>();
+        CreateMap<Invoice, InvoiceResponseModel>()
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Booking.Customer.FullName));
     }
 }

@@ -12,54 +12,18 @@ public class BookingResponseModel
     public DateTime CheckOutDate { get; set; }
     public decimal TotalAmount { get; set; }
     public BookingStatus Status { get; set; }
-    public int NumberOfNights { get; set; }
     
-    public RoomSummaryDto? Room { get; set; }
-    public CustomerSummaryDto? Customer { get; set; }
-    public List<BookingServiceDto> BookingServices { get; set; } = new();
-    public List<InvoiceSummaryDto> Invoices { get; set; } = new();
+    public RoomResponseModel? Room { get; set; }
+    public CustomerResponseModel? Customer { get; set; }
+    public List<BookingServiceResponseModel> BookingServices { get; set; } = new();
+    public List<InvoiceResponseModel> Invoices { get; set; } = new();
     
     public DateTime CreatedAt { get; set; }
 }
 
-public class RoomSummaryDto
-{
-    public Guid Id { get; set; }
-    public string RoomNumber { get; set; } = string.Empty;
-    public string RoomType { get; set; } = string.Empty;
-    public decimal PricePerNight { get; set; }
-    public string FloorName { get; set; } = string.Empty;
-}
-
-public class InvoiceSummaryDto
-{
-    public Guid Id { get; set; }
-    public string InvoiceNumber { get; set; } = string.Empty;
-    public decimal TotalAmount { get; set; }
-    public DateTime IssueDate { get; set; }
-    public string PaymentStatus { get; set; } = string.Empty;
-}
-
-public class CustomerSummaryDto
-{
-    public Guid Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-}
-
-public class BookingServiceDto
-{
-    public Guid ServiceId { get; set; }
-    public string ServiceName { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int Quantity { get; set; }
-    public decimal TotalPrice { get; set; }
-}
-
 public class AddBookingDto
 {
-    public Guid RoomId { get; set; }
+    public List<Guid> RoomIds { get; set; }
     public Guid? CustomerId { get; set; }
     public CustomerInfoDto? CustomerInfo { get; set; }
     public DateTime CheckInDate { get; set; }
@@ -125,4 +89,14 @@ public class BookingServiceResponseModel
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsActive { get; set; }
+}
+
+public class AddBookingWebDto
+{
+    public List<Guid> RoomIds { get; set; }
+    public string? RoomIdsString { get; set; }
+    public Guid? CustomerId { get; set; }
+    public CustomerInfoDto? CustomerInfo { get; set; }
+    public DateTime CheckInDate { get; set; }
+    public DateTime CheckOutDate { get; set; }
 }

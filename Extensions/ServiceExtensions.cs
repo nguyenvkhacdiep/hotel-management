@@ -29,6 +29,8 @@ public static class ServiceExtensions
         services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<IBookingServiceService, BookingServiceService>();
         services.AddScoped<IBookingService, BookingHotelService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<JwtTokenGenerator>();
     }
     

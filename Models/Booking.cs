@@ -14,6 +14,8 @@ public class Booking
 
     public decimal TotalAmount { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; }
     
     public Room Room { get; set; } = null!;
     public Customer Customer { get; set; } = null!;

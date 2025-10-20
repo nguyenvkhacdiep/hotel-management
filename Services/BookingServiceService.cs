@@ -169,10 +169,8 @@ public class BookingServiceService : IBookingServiceService
 
         if (bookingService == null)
             return "Booking service not found";
-        
-        bookingService.UpdatedAt = DateTime.UtcNow;
 
-        _dbContext.BookingServices.Update(bookingService);
+        _dbContext.BookingServices.Remove(bookingService);
         await _dbContext.SaveChangesAsync();
         
         return "Booking service deleted successfully";

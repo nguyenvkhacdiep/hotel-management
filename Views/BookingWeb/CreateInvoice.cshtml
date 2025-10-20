@@ -1,0 +1,239 @@
+@using HotelManagement.Models.Common
+@using HotelManagement.Services.Dto
+@model HotelManagement.Services.Dto.AddInvoiceDto
+
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+@{
+    var booking = ViewBag.Booking as BookingResponseModel;
+    var totalServices = booking.BookingServices?.Sum(s => s.ServicePrice * s.Quantity) ?? 0;
+    
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-file-invoice-dollar"></i> Create Payment Invoice
+                    </h3>
+                </div>
+                
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                <div class="card-body">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Booking Information</h5>
+                        </div>
+                    
+                   
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Check-In Date</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar-check text-success me-2 fs-4"></i>
+                                        <div>
+                                            <strong class="d-block">@booking.CheckInDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                                            <small class="text-muted">@booking.CheckInDate.ToString("hh:mm tt")</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Check-Out Date</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar-x text-danger me-2 fs-4"></i>
+                                        <div>
+                                            <strong class="d-block">@booking.CheckOutDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                                            <small class="text-muted">@booking.CheckOutDate.ToString("hh:mm tt")</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="text-muted small">Number of Nights</label>
+                                    <div>
+                                        <span class="badge bg-info fs-6">@((booking.CheckOutDate - booking.CheckInDate).Days) nights</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="text-muted small">Price</label>
+                                    <div>
+                                        <span class="badge bg-info fs-6">$@booking.TotalAmount.ToString("N2")</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="text-muted small">Created At</label>
+                                    <div>
+                                        <strong class="d-block">@booking.CreatedAt.ToString("MMM dd, yyyy")</strong>
+                                        <small class="text-muted">@booking.CreatedAt.ToString("hh:mm tt")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Full Name</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person-badge text-primary me-2"></i>
+                                        <strong>@booking.Customer.FullName</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Email Address</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-envelope text-primary me-2"></i>
+                                        <a href="mailto:@booking.Customer.Email">@booking.Customer.Email</a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Phone Number</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-telephone text-primary me-2"></i>
+                                        <a href="tel:@booking.Customer.Phone">@booking.Customer.Phone</a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small">Customer ID</label>
+                                    <div>
+                                        <code class="small">@booking.CustomerId</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (booking.BookingServices.Any()) 
+                    { 
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0"><i class="bi bi-cart-check me-2"></i>Additional Services</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th class="text-end">Total Price</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var service in booking.BookingServices)
+                                        {
+                                            <tr>
+                                                <td><strong>@service.ServiceName</strong></td>
+                                                <td>@service.Quantity</td>
+                                                <td>$@service.ServicePrice.ToString("N2")</td>
+                                                <td class="text-end"><strong class="text-success">$@service.ServicePrice.ToString("N2")</strong></td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Services:</th>
+                                            <th class="text-end"><strong class="text-success">$@totalServices.ToString("N2")</strong></th>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                        
+                    <form method="post" id="invoiceForm" asp-action="CreateInvoice">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Payment Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label asp-for="PaymentMethod" class="form-label fw-bold">Payment Method:</label>
+                                    <select asp-for="PaymentMethod" class="form-select" asp-items="Html.GetEnumSelectList<PaymentMethod>()"></select>
+                                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                                </div>
+                                <input type="hidden" name="BookingId" id="selectedCustomerId" value="@booking.Id">
+                                <div class="form-group mb-3">
+                                    <label asp-for="PaymentStatus" class="form-label fw-bold">Payment Status:</label>
+                                    <select asp-for="PaymentStatus" class="form-select" asp-items="Html.GetEnumSelectList<PaymentStatus>()"></select>
+                                    <span asp-validation-for="PaymentStatus" class="text-danger"></span>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a  class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Create Invoice
+                            </button>
+                            <button type="button" class="btn btn-info" id="printPreview">
+                                <i class="fas fa-print"></i> Preview & Print
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    #totalAmount {
+        font-size: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+</style>
